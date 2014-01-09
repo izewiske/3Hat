@@ -7,6 +7,12 @@
 #define ERR std::cerr
 #define OUT std::cout
 
-enum MATCHER_TYPE { NULL, FLANN, BF };
+#define THRESHOLD 3
 
+enum MATCHER_TYPE { FLANN, BF };
+
+struct Plane {
+	std::vector<PixelLoc> leftImage;
+	std::vector<PixelLoc> rightImage;
+};
 #endif //__CONTOUR_MATCHER_STRUCTS__

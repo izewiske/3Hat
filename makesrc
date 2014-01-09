@@ -1,0 +1,3 @@
+CM_OPENCV_SRC = OpenCVContourMatcher.cpp
+
+CM_OPENCV_TEST_SRC = OpenCVContourMatcherTests.cpp

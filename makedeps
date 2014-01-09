@@ -1,0 +1,3 @@
+CM_OPENCV_DEPS = ContourMatcher.h OpenCVContourMatcher.h Contour.h ContourMatcherStructs.h OpenCVContourMatcher.cpp
+
+CM_OPENCV_TEST_DEPS = $(CM_OPENCV_DEPS) OpenCVContourMatcherTests.cpp
