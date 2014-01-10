@@ -57,9 +57,10 @@ public:
   void init(istream &, bool useMmap=false);
   Image(): isSimpleFormat(false), width(0), height(0),
      numChannels(0), channelType(NONE_CHAN) {}
-  Image(unsigned w, unsigned h, ChannelType t, unsigned d):
-     isSimpleFormat(false), width(w), height(h),
-     numChannels(d), channelType(t) { initData(); initZoomParameters(); }
+	Image(unsigned w, unsigned h, ChannelType t, unsigned d): isSimpleFormat(false), width(w), height(h),numChannels(d), channelType(t) {
+    		initData(); initZoomParameters(); 
+    	}
+
   Image(istream &);
   Image(const char *fname, bool useMmap=false);
   Image(unsigned w, unsigned h, unsigned d, const char *fname); // mmap write

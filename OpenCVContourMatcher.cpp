@@ -13,12 +13,12 @@ void OpenCVContourMatcher::loadImages(unsigned char* i1, unsigned int height1, u
 	*/
 		try{
 			if (height1 != height2 | width1 != width2){
-				throw 3;
+				throw OCVMImageSize;
 			}
 			image1 = cv::Mat(height1,width1,CV_8UC3,(void*) &i1);
 			image2 = cv::Mat(height2,width2,CV_8UC3,(void*) &i2);
-		} catch (int e) {
-			ERR << "In OpenCVContourMatcher::loadImages: Cannot compare images of different sizes. Error code " << e << "\n";
+		} catch (std::exception& e) {
+			ERR << e.what() ;
 		}
 	return;
 }
@@ -62,17 +62,19 @@ cv::Mat OpenCVContourMatcher::extractDescriptors(cv::Mat contour, std::vector<cv
 }
 
 Plane OpenCVContourMatcher::compare(Contour contour1, Contour contour2, MATCHER_TYPE m = FLANN){
+	Plane p;
 	try {
 		if ( m == FLANN) {
-			compareFLANN(contour1, contour2);
+			p = compareFLANN(contour1, contour2);
 		} else if ( m == BF ){
-			compareBruteForce(contour1, contour2);
+			p = compareBruteForce(contour1, contour2);
 		} else {
-			throw 2;
+			throw OCVMMatcherNotDef;
 		}
-	} catch (int e) {
-		ERR << "In OpenCVContourMatcher::compare: Matcher not defined for OpenCVContourMatcher. Exitcode " << e << "\n";
+	} catch (std::exception& e) {
+		ERR << e.what() ;
 	}
+	return p;
 }
 
 Plane OpenCVContourMatcher::compareFLANN(Contour contour1, Contour contour2){
@@ -145,3 +147,33 @@ std::vector<cv::DMatch> OpenCVContourMatcher::matchFLANN(cv::Mat desc1, cv::Mat 
 	matcher.match(desc1,desc2,matches);
 	return matches;
 }
+
+#ifdef __OCVM_TESTS__
+int main(){
+
+	bool planeIsAsExpected(Plane p){
+		bool valid = true;
+		//check that plane points coincide with what we expect
+		return valid;
+	}
+
+	try {
+		OUT << "Executing OpenCVContourMatcher test suite..." << "\n";
+		OUT << "Opening test images..." << "\n";
+		std::fstream imageFile;
+		//Image img1(imageFile.open("openCVTestImage1.ppm"));
+		//Image img2(imageFile.open("openCVTestImage2.ppm"));
+		imageFile.close();
+	
+		OpenCVContourMatcher matcher;
+		//matcher.loadImages(img1, img2);
+
+	//	Plane plane = matcher.compare()
+	//	if (!planeIsAsExpected(plane)) 
+			throw OCVMUnknown;
+	} catch (std::exception& e) {
+		ERR << e.what() ;
+	}
+}
+
+#endif //__OCVM_TESTS__

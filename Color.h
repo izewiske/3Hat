@@ -1,5 +1,10 @@
 // Color.h by Olaf Hall-Holt, 2007-2011
 #include <iostream>
+#include <string>
+#include <cassert>
+#include <vector>
+#include <math.h>
+
 
 #ifndef __COLOR__
 #define __COLOR__
