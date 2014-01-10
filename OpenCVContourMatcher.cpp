@@ -1,3 +1,4 @@
+// This is the file that will be linked into the final application
 #include "OpenCVContourMatcher.h"
 
 void OpenCVContourMatcher::loadImages(Image i1, Image i2){
