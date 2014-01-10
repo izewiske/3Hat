@@ -3,3 +3,6 @@
 .DS_STORE
 CMakeFiles
 CMakeFiles/*
+Makefile
+CMakeCache.txt
+cmake_install.cmake
