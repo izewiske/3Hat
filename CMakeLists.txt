@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 2.8)
+project( ContourMatcher )
+find_package( OpenCV REQUIRED )
+add_executable( ContourMatcher OpenCVContourMatcherTests.cpp )
+target_link_libraries( ContourMatcher ${OpenCV_LIBS} )

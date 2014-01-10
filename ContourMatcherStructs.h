@@ -1,4 +1,6 @@
 #include <iostream>
+#include <vector>
+#include "PixelLoc.h"
 
 #ifndef __CONTOUR_MATCHER_STRUCTS__
 #define __CONTOUR_MATCHER_STRUCTS__
@@ -15,4 +17,5 @@ struct Plane {
 	std::vector<PixelLoc> leftImage;
 	std::vector<PixelLoc> rightImage;
 };
+
 #endif //__CONTOUR_MATCHER_STRUCTS__

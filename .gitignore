@@ -1,0 +1,5 @@
+*.o
+*.pyc
+.DS_STORE
+CMakeFiles
+CMakeFiles/*

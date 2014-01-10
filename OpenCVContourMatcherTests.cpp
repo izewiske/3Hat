@@ -1,3 +1,4 @@
+#include "Image.h"
 #include "OpenCVContourMatcher.h"
 #include <iostream>
 
@@ -8,9 +9,8 @@ int main(){
 		OUT << "Executing OpenCVContourMatcher test suite..." << "\n";
 		OUT << "Loading test images..." << "\n";
 		OpenCVContourMatcher matcher;
-		matcher.loadImages()
 
-	} catch (int e) 
+	} catch (int e) {
 		ERR << "One or more tests failed. Exit code " << e << "\n";
 	}
 
