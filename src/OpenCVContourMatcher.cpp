@@ -149,64 +149,6 @@ std::vector<cv::DMatch> OpenCVContourMatcher::matchFLANN(cv::Mat desc1, cv::Mat 
 }
 
 
-#ifdef __OCVM_TESTS__
-int main(){
-
-	void printPlane(Plane p){
-		OUT << "Plane:";
-		for (int i = 0; i<p.leftImage.size();i++){
-			OUT << "Pixel-Locations: ( " <<p.leftImage[i] <<" , "<<p.rightImage[i] << " )\n";
-		}
-		return ;
-	}
-
-	bool planeIsAsExpected(Plane p){
-		bool valid = true;
-		//check that plane points coincide with what we expect
-		return valid;
-	}
-
-	try {
-		OUT << "Executing OpenCVContourMatcher test suite..." << "\n";
-		OUT << "Opening test images..." << "\n";
-		std::fstream imageFile;
-		Image img1(imageFile.open("openCVTestImage1.ppm"));
-		Image img2(imageFile.open("openCVTestImage2.ppm"));
-		imageFile.close();
-		OUT << "Images opened.\n";
-		OUT << "Initializing matcher...\n";
-		OpenCVContourMatcher matcher;
-		matcher.loadImages(img1, img2);
-		OUT << "Matcher initilized...\n";
-
-		OUT << "Initializing contours...\n";
-		Contour c1;
-		Contour c2;
-		OUT <<  "Contours initilized.\n";
-
-		OUT << "Executing FLANN matcher test...\n";
-		Plane plane = matcher.compare(c1,c2,);
-		if (!planeIsAsExpected(plane)) {
-			printPlane(expected);
-			printPlane(plane);
-			OUT << "FLANN matcher failed. \n";
-			throw OCVMUnknown;
-		}
-		OUT << "Executing Brute force matcher test...\n";
-		plane = matcher.compare(c1,c2,BF);
-		if (!planeIsAsExpected(plane)) {
-			printPlane(expected);
-			printPlane(plane);
-			OUT << "Brute force matcher failed. \n";
-			throw OCVMUnknown;
-		}
-	} catch (std::exception& e) {
-		ERR << e.what() ;
-	}
-}
-
-#endif //__OCVM_TESTS__
-
 
 
 
