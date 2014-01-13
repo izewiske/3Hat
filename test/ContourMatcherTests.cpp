@@ -67,6 +67,8 @@ int main(){
 	} catch (std::exception& e) {
 		ERR << e.what() ;
 	}
+
+	return 0;
 }
 
 #endif //__OCVM_Tests__

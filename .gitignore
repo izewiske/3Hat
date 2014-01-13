@@ -6,3 +6,6 @@ CMakeFiles/*
 Makefile
 CMakeCache.txt
 *.cmake
+*.m
+*.jpg
+lib*.a

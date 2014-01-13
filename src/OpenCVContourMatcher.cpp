@@ -148,19 +148,3 @@ std::vector<cv::DMatch> OpenCVContourMatcher::matchFLANN(cv::Mat desc1, cv::Mat 
 	return matches;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
