@@ -9,3 +9,4 @@ CMakeCache.txt
 *.m
 *.jpg
 lib*.a
+*.a
