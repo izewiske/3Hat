@@ -1,6 +1,3 @@
 include_directories(../src)
-add_executable(ContourMatcherTests ContourMatcherTests.cpp)
-target_link_libraries	(ContourMatcherTests
-						OCV-CM
-						${OpenCV_LIBS}
-						)
+add_executable(surf main.cpp)
+target_link_libraries(surf OSURF-BASE ${OpenCV_LIBS})

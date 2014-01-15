@@ -1,2 +1,2 @@
-file(GLOB_RECURSE OCV-CMSource *.cpp)
-add_library(OCV-CM ${OCV-CMSource} )
+file(GLOB_RECURSE OSURF-BASE-Source *.cpp)
+add_library(OSURF-BASE ${OSURF-BASE-Source} )
