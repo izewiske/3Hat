@@ -1,2 +1,2 @@
-file(GLOB_RECURSE OSURF-BASE-Source *.cpp)
-add_library(OSURF-BASE ${OSURF-BASE-Source} )
+file(GLOB_RECURSE 3SURF-Source *.cpp)
+add_library(3SURF ${3SURF-Source} )

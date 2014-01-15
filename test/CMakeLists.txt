@@ -1,3 +1,4 @@
 include_directories(../src)
-add_executable(surf main.cpp)
-target_link_libraries(surf OSURF-BASE ${OpenCV_LIBS})
+include_directories(../OpenSURF/src)
+add_executable(testdriver main.cpp)
+target_link_libraries(testdriver 3SURF OSURF-BASE ${OpenCV_LIBS})
