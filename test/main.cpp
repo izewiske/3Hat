@@ -15,7 +15,10 @@ int mainImage(void)
 {
   // Declare Ipoints and other stuff
   IpVec ipts;
-  IplImage *img=cvLoadImage("OpenSURF/imgs/sf.jpg");
+  // Make image as a Mat; convert to IplImage for OpenSURF library actions
+  cv::Mat mimg=cv::imread("OpenSURF/imgs/sf.jpg", CV_LOAD_IMAGE_COLOR);
+  IplImage iimg=mimg;
+  IplImage* img=&iimg;
 
   // Detect and describe interest points in the image
   clock_t start = clock();
@@ -38,9 +41,18 @@ int mainImage(void)
 
 int mainStaticMatch()
 {
+  // Make images as Mats; convert to IplImage for OpenSURF library actions
+  cv::Mat mimg1, mimg2;
+  mimg1=cv::imread("OpenSURF/imgs/img1.jpg", CV_LOAD_IMAGE_COLOR);
+  mimg2=cv::imread("OpenSURF/imgs/img2.jpg", CV_LOAD_IMAGE_COLOR);
+
+  IplImage iimg1, iimg2;
+  iimg1=mimg1;
+  iimg2=mimg2;
+
   IplImage *img1, *img2;
-  img1 = cvLoadImage("OpenSURF/imgs/img1.jpg");
-  img2 = cvLoadImage("OpenSURF/imgs/img2.jpg");
+  img1 = &iimg1;
+  img2 = &iimg2;
 
   IpVec ipts1, ipts2;
   surfDetDes(img1,ipts1,false,4,4,2,0.0001f);
