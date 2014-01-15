@@ -2,6 +2,7 @@
 *.a
 *.exe
 *.pyc
+*.swp
 .DS_STORE
 CMakeFiles
 CMakeFiles/*
