@@ -1,0 +1,12 @@
+*.o
+*.a
+*.pyc
+.DS_STORE
+CMakeFiles
+CMakeFiles/*
+Makefile
+CMakeCache.txt
+*.cmake
+*.m
+*.jpg
+*.a
