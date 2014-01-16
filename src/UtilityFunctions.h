@@ -97,15 +97,18 @@ bool contourIsDifficult(Contour contour,Image image){
 	// Determine the top number of weights we want to use
 	// using all weights right now
 	for (int i = 0; i < weights.size(); ++i) {
+		
+		
 		// compare some attributs of features
 		// If weight is weak then pop from list and don't bother calculating things
-		if (weights[i] <= _WEIGHT_THRESHOLD){
+		if (weights[i] < _WEIGHT_THRESHOLD){
 			//TODO: for speed consider not popping bad weights just skipping them
+			featureWeightMap.erase(weights[i]);
 			weights.erase(weights.begin()+i);
 		}
 		for( int j = 0; j<featureWeightMap[i].size(); j++){
-			if ( distance(centerPt.x,centerPt.y,featureWeightMap[i][j].x,featureWeightMap[i][j].y) >= _DISTANCE_THRESHHOLD){
-
+			if ( distance(centerPt.x,centerPt.y,featureWeightMap[i][j].x,featureWeightMap[i][j].y) <= _DISTANCE_THRESHHOLD){
+				// if features are closer to center then we want to weight them more because they are less likely to be occluded 
 			}
 		}
 	}
