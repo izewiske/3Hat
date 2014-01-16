@@ -1,4 +1,5 @@
 *.o
+*.a
 *.pyc
 .DS_STORE
 CMakeFiles
