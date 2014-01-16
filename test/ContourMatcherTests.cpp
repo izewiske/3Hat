@@ -1,4 +1,5 @@
 #include "../src/OpenCVContourMatcher.h"
+#include "../src/UtilityFunctions.h"
 #include <iostream>
 #include <fstream>
 #include <string>

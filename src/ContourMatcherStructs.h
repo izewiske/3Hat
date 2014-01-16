@@ -18,4 +18,10 @@ struct Plane {
 	std::vector<PixelLoc> rightImage;
 };
 
+
+struct Feature {
+	int x,y;
+	float weight;
+	int octave;
+};
 #endif //__CONTOUR_MATCHER_STRUCTS__
