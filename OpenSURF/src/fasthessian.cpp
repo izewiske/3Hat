@@ -10,10 +10,11 @@
 ************************************************************/
 
 #include "integral.h"
-#include "ipoint.h"
 #include "utils.h"
 
-#include <vector>
+//(included in fasthessian.h)
+//#include <vector>
+//#include "ipoint.h"
 
 #include "responselayer.h"
 #include "fasthessian.h"
@@ -261,6 +262,46 @@ int FastHessian::isExtremum(int r, int c, ResponseLayer *t, ResponseLayer *m, Re
         ((rr != 0 || cc != 0) && m->getResponse(r+rr, c+cc, t) >= candidate) ||
         b->getResponse(r+rr, c+cc, t) >= candidate
         ) 
+        return 0;
+    }
+  }
+
+  return 1;
+}
+  
+//-------------------------------------------------------
+
+//! Non Maximal Suppression function
+int FastHessian::isExtremumInContour(int r, int c, ResponseLayer *t, ResponseLayer *m, ResponseLayer *b, ContourMat* con)
+{
+  // bounds check
+  int layerBorder = (t->filter + 1) / (2 * t->step);
+  if (r <= layerBorder || r >= t->height - layerBorder || c <= layerBorder || c >= t->width - layerBorder)
+    return 0;
+
+  // check that the candidate point is inside the contour
+  if (!con->inContour(r, c, t))
+    return 0;
+
+  // check the candidate point in the middle layer is above thresh 
+  float candidate = m->getResponse(r, c, t);
+  if (candidate < thresh) 
+    return 0; 
+
+  for (int rr = -1; rr <=1; ++rr)
+  {
+    for (int cc = -1; cc <=1; ++cc)
+    {
+      // if any response in 3x3x3 is greater candidate and within contour, not maximum
+      // r+rr is the row IN THE TOP RESPONSE LAYER (sparsest layer)
+      // top response layer has smallest width, largest step and filter
+      if (con->inContour(r+rr,c+cc,t) &&
+          (
+           t->getResponse(r+rr, c+cc) >= candidate ||
+           ((rr != 0 || cc != 0) && m->getResponse(r+rr, c+cc, t) >= candidate) ||
+           b->getResponse(r+rr, c+cc, t) >= candidate
+          )
+	 )
         return 0;
     }
   }

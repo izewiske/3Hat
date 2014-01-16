@@ -8,6 +8,8 @@
 *  MSc University of Bristol, 2008.                        *
 *                                                          *
 ************************************************************/
+#ifndef RESPONSELAYER_H
+#define RESPONSELAYER_H
 
 #include <memory.h>
 
@@ -90,3 +92,5 @@ public:
   }
 #endif
 };
+
+#endif

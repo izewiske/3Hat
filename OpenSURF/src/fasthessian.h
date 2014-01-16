@@ -14,6 +14,7 @@
 
 #include <cv.h>
 #include "ipoint.h"
+#include "ContourMat.h"
 
 #include <vector>
 
@@ -70,6 +71,7 @@ class FastHessian {
 
     //! 3x3x3 Extrema test
     int isExtremum(int r, int c, ResponseLayer *t, ResponseLayer *m, ResponseLayer *b);    
+    int isExtremumInContour(int r, int c, ResponseLayer *t, ResponseLayer *m, ResponseLayer *b, ContourMat* con); 
     
     //! Interpolation functions - adapted from Lowe's SIFT implementation
     void interpolateExtremum(int r, int c, ResponseLayer *t, ResponseLayer *m, ResponseLayer *b);
