@@ -3,6 +3,10 @@
 #include "ContourMatcherExceptions.h"
 
 #include <opencv2/opencv.hpp>
+#include "opencv2/highgui/highgui.hpp"
+#include <opencv2/features2d/features2d.hpp>
+#include "opencv2/imgproc/imgproc.hpp"
+
 #include <opencv2/nonfree/nonfree.hpp>
 #include <opencv2/nonfree/features2d.hpp>
 #include <opencv2/legacy/legacy.hpp>
@@ -21,7 +25,12 @@ class OpenCVContourMatcher : public ContourMatcher {
 		Plane compareFLANN(Contour contour1, Contour contour2);
 		Plane compareBruteForce(Contour contour1, Contour contour2);
 
-		cv::Mat convertToMatrix(Contour contour);
+		//cv::Mat convertToMatrix(Contour contour);
+
+//		cv::Mat sliceContour(std::vector<std::vector<PixelLoc> > contourPixels,cv::Mat image);
+		cv::Mat sliceContour(std::vector<PixelLoc> contourPixels,cv::Mat image);
+
+
 
 		std::vector<cv::KeyPoint> detectFeaturePoints(cv::Mat contour);
 		cv::Mat extractDescriptors(cv::Mat contour, std::vector<cv::KeyPoint> contourFeatures);

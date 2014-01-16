@@ -6,6 +6,7 @@ void OpenCVContourMatcher::loadImages(Image i1, Image i2){
 	return;
 }
 
+
 void OpenCVContourMatcher::loadImages(unsigned char* i1, unsigned int height1, unsigned int width1, unsigned char* i2, unsigned int height2, unsigned int width2){
 	/*	
 		!!! This method of constructing cv::Mat objects requires that the 
@@ -23,10 +24,33 @@ void OpenCVContourMatcher::loadImages(unsigned char* i1, unsigned int height1, u
 	return;
 }
 
-cv::Mat OpenCVContourMatcher::convertToMatrix(Contour contour){
 
-	cv::Mat c;
-	return c;
+// Takes input from getContour which returns a //vector of vector of PixelLoc
+cv::Mat OpenCVContourMatcher::sliceContour(std::vector<PixelLoc> contourPixels,cv::Mat image){
+	std::vector<cv::Point> contour;
+	//TODO: include boundary margins on region of interest
+	for (int j = 0; j < contourPixels.size(); ++j) {
+		// Makes a Pixel2f
+		cv::Point p(contourPixels[j].x,contourPixels[j].y);
+		//adds it to contour
+		contour.push_back(p);
+	}
+
+	/* 
+	From OpenCV on fitEllipse():
+	The function calculates the ellipse that fits (in a least-squares sense) a set of 2D points best of all. 
+	It returns the rotated rectangle in which the ellipse is inscribed. The algorithm [Fitzgibbon95] is used. 
+
+	!!!
+		NOTE: Developer should keep in mind that it is possible that the returned ellipse/rotatedRect data contains 
+		negative indices, due to the data points being close to the border of the containing Mat element.
+	!!!
+	*/
+	cv::RotatedRect roi = cv::fitEllipse(contour);
+	cv::Point2f vertices[4];
+	roi.points(vertices);
+	cv::Mat_<uchar> slice(image,vertices);
+	return slice;
 }
 
 Plane OpenCVContourMatcher::convertDMatchesToPlane(std::vector<cv::KeyPoint> features, std::vector<cv::KeyPoint> features2, std::vector<cv::DMatch> matches){
@@ -79,8 +103,8 @@ Plane OpenCVContourMatcher::compare(Contour contour1, Contour contour2, MATCHER_
 
 Plane OpenCVContourMatcher::compareFLANN(Contour contour1, Contour contour2){
 	//Convert from contour class to matrix
-	cv::Mat c1 = convertToMatrix(contour1);
-	cv::Mat c2 = convertToMatrix(contour2);
+	cv::Mat c1 = sliceContour(contour1.getContourBoundary(),image1);
+	cv::Mat c2 = sliceContour(contour2.getContourBoundary(),image2);
 	// Detect feature points of contour 1 and contour 2
 	std::vector<cv::KeyPoint> feat1 = detectFeaturePoints(c1);
 	std::vector<cv::KeyPoint> feat2 = detectFeaturePoints(c2);
@@ -95,8 +119,8 @@ Plane OpenCVContourMatcher::compareFLANN(Contour contour1, Contour contour2){
 
 Plane OpenCVContourMatcher::compareBruteForce(Contour contour1, Contour contour2){
 	//Convert from contour class to matrix
-	cv::Mat c1 = convertToMatrix(contour1);
-	cv::Mat c2 = convertToMatrix(contour2);
+	cv::Mat c1 = sliceContour(contour1.getContourBoundary(),image1);
+	cv::Mat c2 = sliceContour(contour2.getContourBoundary(),image2);
 	// Detect feature points of contour 1 and contour 2
 	std::vector<cv::KeyPoint> feat1 = detectFeaturePoints(c1);
 	std::vector<cv::KeyPoint> feat2 = detectFeaturePoints(c2);

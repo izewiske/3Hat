@@ -23,6 +23,7 @@ class Contour {
 		void computeAvgCol(bool onRight);
 		void invertCol();
 		std::vector< std::vector<Coord> > getSimplifiedBdy(bool onRight);
+		std::vector<PixelLoc> getContourBoundary(){ return bdy;}
 };
 extern Contour noContour;
 std::ostream &operator<<(std::ostream &os, const Contour &m);
