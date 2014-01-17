@@ -10,3 +10,11 @@ more reasonable than the others?  It seems like extrema shunting will probably l
 the edges of the matching contours have differences due to noise.
 
 Do we just only run our checks when _all_ pixels within the filter are inside the contour?
+
+
+Use _globally_ rotation invariant features, rather than local rotational invariance. We can justify this since
+our images are of static scenes, in which objects are not expected to have moved between pictures relative to each
+other (except for motion due to parallax disparities). Will skew from different perspectives make this problematic?
+
+If features are globally rotationally invariant, then we can make a distance function for partial feature descriptors
+that is simply weighted by the number of filled vector components.
