@@ -1,0 +1,12 @@
+Implement a parallel integral image made from the contour boolean array, and perhaps a third made of the boolean
+array multiplied elementwise with the image array.  These would allow us to calculate box integrals which include
+only the elements within the contour, and also would allow us to determine how many pixels have been included 
+(and therefore allow proper weighting).  Is this approach mathematically sound, though?
+
+Is it ok to calculate a shunt a maximum into our contour, then interpolate its position to be outside?
+
+How will rough edges interact with our treatment of pixels outside the contour?  Will this make one method much
+more reasonable than the others?  It seems like extrema shunting will probably lead to feature bifurcation when
+the edges of the matching contours have differences due to noise.
+
+Do we just only run our checks when _all_ pixels within the filter are inside the contour?
