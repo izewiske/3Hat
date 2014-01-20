@@ -27,9 +27,6 @@ bool planeIsAsExpected(Plane p){
 
 
 int main(){
-  /*
-
-
 	try {
 		OUT << "Executing OpenCVContourMatcher test suite..." << "\n";
 		OUT << "Opening test images..." << "\n";
@@ -69,7 +66,6 @@ int main(){
 	} catch (std::exception& e) {
 		ERR << e.what() ;
 	}
-  */
 
 	return 0;
 }

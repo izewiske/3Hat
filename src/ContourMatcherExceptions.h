@@ -1,8 +1,8 @@
-#include <exception>
-#include <iostream>
-
 #ifndef __CONTOUR_MATCHER_EXCEPTIONS__
 #define __CONTOUR_MATCHER_EXCEPTIONS__
+
+#include <exception>
+#include <iostream>
 
 class OCVMMatcherNotDefined: public std::exception {
  	virtual const char* what() const throw() {

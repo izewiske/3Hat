@@ -13,6 +13,7 @@ using std::istream;
 using std::string;
 using std::stringstream;
 using std::ws;
+using std::pair;
 #include<cassert>
 #include<math.h>
 
