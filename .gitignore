@@ -1,4 +1,6 @@
 *.o
+*.a
+*.exe
 *.pyc
 *.swp
 *.exe
@@ -10,4 +12,3 @@ CMakeCache.txt
 *.cmake
 *.m
 *.jpg
-*.a
