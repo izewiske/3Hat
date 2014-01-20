@@ -57,6 +57,11 @@ int main( int argc, char** argv ) {
      return -1;
     }
 
+    //code from showTile.cpp from Olaf
+    Wright::selectedTileID = arg[1];
+    Wright::oneTileMode = true;
+
+
     cv::Mat image;
     image = cv::imread(argv[2], CV_LOAD_IMAGE_COLOR); 
 
