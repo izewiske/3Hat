@@ -1,6 +1,7 @@
 #include "ContourMatcherStructs.h"
 #include "Contour.h"
 #include "PixelLoc.h"
+#include "Image.h"
 
 #include <unordered_map>
 #include <math.h>
