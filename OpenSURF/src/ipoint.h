@@ -15,16 +15,20 @@
 #include <vector>
 #include <math.h>
 
+#define MATCH_THRESHOLD 0.65
+
 //-------------------------------------------------------
 
 class Ipoint; // Pre-declaration
 typedef std::vector<Ipoint> IpVec;
 typedef std::vector<std::pair<Ipoint, Ipoint> > IpPairVec;
+typedef std::vector<std::pair<std::pair<Ipoint, Ipoint>, float> > MatchVec;
 
 //-------------------------------------------------------
 
 //! Ipoint operations
 void getMatches(IpVec &ipts1, IpVec &ipts2, IpPairVec &matches);
+void getMatches(IpVec &ipts1, IpVec &ipts2, MatchVec &matches);
 int translateCorners(IpPairVec &matches, const CvPoint src_corners[4], CvPoint dst_corners[4]);
 
 //-------------------------------------------------------
@@ -40,11 +44,18 @@ public:
   Ipoint() : orientation(0) {};
 
   //! Gets the distance in descriptor space between Ipoints
-  float operator-(const Ipoint &rhs)
-  {
+  float operator-(const Ipoint &rhs){
     float sum=0.f;
     for(int i=0; i < 64; ++i)
       sum += (this->descriptor[i] - rhs.descriptor[i])*(this->descriptor[i] - rhs.descriptor[i]);
+    return sqrt(sum);
+  };
+
+  float partialDistance(const Ipoint &rhs){
+    float sum=0.f;
+    for(int i=0; i < 64; ++i)
+      if (this->descriptor[i]!=FLT_MAX && rhs.descriptor[i]!=FLT_MAX)
+        sum += (this->descriptor[i] - rhs.descriptor[i])*(this->descriptor[i] - rhs.descriptor[i]);
     return sqrt(sum);
   };
 

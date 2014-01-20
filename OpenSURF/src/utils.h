@@ -45,6 +45,9 @@ void drawFPS(IplImage *img);
 //! Draw a Point at feature location
 void drawPoint(IplImage *img, Ipoint &ipt);
 
+//! Draw a Point at feature location highlighted with given color
+void drawPoint(IplImage *img, Ipoint &ipt, const CvScalar color);
+
 //! Draw a Point at all features
 void drawPoints(IplImage *img, std::vector<Ipoint> &ipts);
 

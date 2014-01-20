@@ -192,6 +192,26 @@ void drawPoint(IplImage *img, Ipoint &ipt)
 //-------------------------------------------------------
 
 //! Draw a single feature on the image
+void drawPoint(IplImage *img, Ipoint &ipt, const CvScalar color)
+{
+  //CvScalar color interpreted as (b,g,r[,alpha])
+  float s, o;
+  int r1, c1;
+
+  s = 3;
+  o = ipt.orientation;
+  r1 = fRound(ipt.y);
+  c1 = fRound(ipt.x);
+
+  cvCircle(img, cvPoint(c1,r1), fRound(s), COLOURS[ipt.clusterIndex%NCOLOURS], -1);
+  cvCircle(img, cvPoint(c1,r1), fRound(s+1), color, 2);
+
+}
+
+
+//-------------------------------------------------------
+
+//! Draw a single feature on the image
 void drawPoints(IplImage *img, vector<Ipoint> &ipts)
 {
   float s, o;
