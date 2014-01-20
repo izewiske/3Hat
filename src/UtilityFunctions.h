@@ -5,12 +5,9 @@
 #include <unordered_map>
 #include <math.h>
 
+#ifndef __UTILITY_FUNCTIONS__
+#define __UTILITY_FUNCTIONS__
 
-#ifndef __OPENCV_UTLITY_FUNCTIONS__
-#define __OPENCV_UTLITY_FUNCTIONS__
-
-#define _DISTANCE_THRESHHOLD 200
-#define _WEIGHT_THRESHOLD 0.50
 
 // Commonly mentioned in literature is a JND of 1.0
 // Mahy et al. (1994) assessed a JND of 2.3 
@@ -19,6 +16,14 @@
 
 // approximation of pi for use in CIEDE 2000 calculations for color difference
 #define pi 3.141592653589793238462643383279
+
+#ifndef __OPENCV_UTLITY_FUNCTIONS__
+#define __OPENCV_UTLITY_FUNCTIONS__
+
+#define _DISTANCE_THRESHHOLD 200
+#define _WEIGHT_THRESHOLD 0.50
+
+
 
 
 #include <opencv2/opencv.hpp>
@@ -263,5 +268,6 @@ double calculateColorDifference(double * lab1, double * lab2) {
 }
 
 
+#endif //__UTILITY_FUNCTIONS__
 
 
