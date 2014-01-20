@@ -1,16 +1,17 @@
-#include "ContourMatcherStructs.h"
-#include "Contour.h"
-#include "PixelLoc.h"
-
-#include <unordered_map>
-#include <math.h>
-
-
 #ifndef __OPENCV_UTLITY_FUNCTIONS__
 #define __OPENCV_UTLITY_FUNCTIONS__
 
 #define _DISTANCE_THRESHHOLD 200
 #define _WEIGHT_THRESHOLD 0.50
+
+#include "ContourMatcherStructs.h"
+#include "PixelLoc.h"
+
+#include "Contour.h" //eriol header
+#include "Image.h" //eriol header`
+
+#include <unordered_map>
+#include <math.h>
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/features2d/features2d.hpp>
