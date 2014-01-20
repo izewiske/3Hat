@@ -3,9 +3,12 @@
 *.exe
 *.pyc
 *.swp
+*.exe
 .DS_STORE
 CMakeFiles
 CMakeFiles/*
 Makefile
 CMakeCache.txt
 *.cmake
+*.m
+*.jpg
