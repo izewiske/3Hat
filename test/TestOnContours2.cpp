@@ -5,11 +5,11 @@
 #include <string.h>
 using namespace std;
 #ifdef USE_GL
-#ifdef __APPLE__
-#include <GLUT/glut.h>
-#else 
-#include <GL/glut.h>
-#endif
+	#ifdef __APPLE__
+	#include <GLUT/glut.h>
+	#ifndef __APPLE__
+	#include <GL/glut.h>
+	#endif
 #endif
 
 
@@ -60,28 +60,28 @@ cv::Mat sliceContour(std::vector<PixelLoc> contourPixels, cv::Mat image){
 }
 
 
-int main( int argc, char** argv ) {
+// int main( int argc, char** argv ) {
 
-		if( argc != 3) {
-			// scottt100 1149L
-		 cout <<" Usage: tileID image" << endl;
-		 return -1;
-		}
+// 		if( argc != 3) {
+// 			// scottt100 1149L
+// 		 cout <<" Usage: tileID image" << endl;
+// 		 return -1;
+// 		}
 
-		cv::Mat image;
-		image = cv::imread(argv[2], CV_LOAD_IMAGE_COLOR); 
+// 		cv::Mat image;
+// 		image = cv::imread(argv[2], CV_LOAD_IMAGE_COLOR); 
 
-		if(! image.data ) {
-				cout <<	"Could not open or find the image" << std::endl ;
-				return -1;
-		}
+// 		if(! image.data ) {
+// 				cout <<	"Could not open or find the image" << std::endl ;
+// 				return -1;
+// 		}
 
-		cv::Mat contour = sliceContour(getContour(argv[1],argv[2]),image);
-		cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );
-		cv::imshow( "Display window", contour );
-		cv::waitKey(0);
-		return 0;
-}
+// 		cv::Mat contour = sliceContour(getContour(argv[1],argv[2]),image);
+// 		cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );
+// 		cv::imshow( "Display window", contour );
+// 		cv::waitKey(0);
+// 		return 0;
+// }
 
 #ifdef USE_GL
 void commonKeyboard( unsigned char c, int x, int y, int windowIndex)
