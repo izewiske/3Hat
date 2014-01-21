@@ -40,7 +40,7 @@ cv::RotatedRect defineROI(std::vector<PixelLoc> contourPixels){
 }
 
 // Takes input from getContour which returns a vector of vector of PixelLoc
-cv::Mat sliceContour(std::vector<PixelLoc> contourPixels,cv::Mat image){
+cv::Mat sliceContour(std::vector<PixelLoc> contourPixels, cv::Mat image){
 	cv::RotatedRect roi = defineROI(contourPixels);
 	cv::Point2f vertices[4];
 	roi.points(vertices);
