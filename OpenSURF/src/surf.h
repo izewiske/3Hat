@@ -15,6 +15,7 @@
 #include <cv.h>
 #include "ipoint.h"
 #include "integral.h"
+#include "fasthessian.h"
 
 #include <vector>
 
@@ -28,6 +29,9 @@ class Surf {
     //! Describe all features in the supplied vector
     void getDescriptors(bool bUpright = false);
   
+    //! Determine global orientation of the image at the given scale
+    void getOrientationGlobal(const float scale, const int init_sample=INIT_SAMPLE);
+
   private:
     
     //---------------- Private Functions -----------------//

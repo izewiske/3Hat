@@ -46,6 +46,13 @@ inline void surfDetDes(IplImage *img,  /* image to find Ipoints in */
   // Extract the descriptors for the ipts
   des.getDescriptors(upright);
 
+  // --TESTING-- Get global orientation vector at each octave
+  des.getOrientationGlobal(1,init_sample);
+  des.getOrientationGlobal(2,init_sample);
+  des.getOrientationGlobal(4,init_sample);
+  des.getOrientationGlobal(8,init_sample);
+  des.getOrientationGlobal(16,init_sample);
+
   // Deallocate the integral image
   cvReleaseImage(&int_img);
 }

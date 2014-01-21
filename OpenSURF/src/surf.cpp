@@ -10,8 +10,9 @@
 ************************************************************/
 
 #include "utils.h"
-
 #include "surf.h"
+
+#include <iostream>
 
 //-------------------------------------------------------
 //! SURF priors (these need not be done at runtime)
@@ -80,10 +81,13 @@ void Surf::getDescriptors(bool upright)
 //! Assign the supplied Ipoint an orientation
 void Surf::getOrientation()
 {
+  // the interest point to which we'd like to assign an orientation
   Ipoint *ipt = &ipts[index];
   float gauss = 0.f, scale = ipt->scale;
   const int s = fRound(scale), r = fRound(ipt->y), c = fRound(ipt->x);
   std::vector<float> resX(109), resY(109), Ang(109);
+
+  // speed optimization over using absolute value evaluation
   const int id[] = {6,5,4,3,2,1,0,1,2,3,4,5,6};
 
   int idx = 0;
@@ -92,11 +96,14 @@ void Surf::getOrientation()
   {
     for(int j = -6; j <= 6; ++j) 
     {
-      if(i*i + j*j < 36) 
+      if(i*i + j*j < 36) // up to 6 away in any direction
       {
+        // look up the value of the 2d gaussian at the given offset from center
         gauss = static_cast<float>(gauss25[id[i+6]][id[j+6]]);  // could use abs() rather than id lookup, but this way is faster
+	// multiply distance away in i & j by scale for calculating wavelet responses
         resX[idx] = gauss * haarX(r+j*s, c+i*s, 4*s);
         resY[idx] = gauss * haarY(r+j*s, c+i*s, 4*s);
+	// angle of the gradient (up from x-axis)
         Ang[idx] = getAngle(resX[idx], resY[idx]);
         ++idx;
       }
@@ -108,16 +115,19 @@ void Surf::getOrientation()
   float max=0.f, orientation = 0.f;
   float ang1=0.f, ang2=0.f;
 
-  // loop slides pi/3 window around feature point
+  // loop slides pi/3 window from ang1 to ang2 around feature point
+  // increments of .15 radians
   for(ang1 = 0; ang1 < 2*pi;  ang1+=0.15f) {
     ang2 = ( ang1+pi/3.0f > 2*pi ? ang1-5.0f*pi/3.0f : ang1+pi/3.0f);
+
     sumX = sumY = 0.f; 
     for(unsigned int k = 0; k < Ang.size(); ++k) 
     {
       // get angle from the x-axis of the sample point
       const float & ang = Ang[k];
 
-      // determine whether the point is within the window
+      // determine whether the point's gradient is within the window
+      // if so, add its x and y componenets to our sums 
       if (ang1 < ang2 && ang1 < ang && ang < ang2) 
       {
         sumX+=resX[k];  
@@ -143,6 +153,83 @@ void Surf::getOrientation()
 
   // assign orientation of the dominant response vector
   ipt->orientation = orientation;
+}
+
+//-------------------------------------------------------
+
+//! Determine the global orientation of the image at the given scale
+void Surf::getOrientationGlobal(const float scale, const int init_sample)
+{
+  // round scale to integer
+  const int s = fRound(scale);
+  // determine number of points in the image at this scale
+  int width = img->width;
+  int height = img->height;
+  // what is init_sample? do we need this at all?
+  int w = width/init_sample/s;
+  int h = height/init_sample/s;
+
+  const int numpoints = w*h;
+
+  std::vector<float> resX(numpoints), resY(numpoints), Ang(numpoints);
+
+  // calculate haar response for the entire image at this scale
+  for (int x=0; x<w; x++){
+    for (int y=0; y<h; y++){
+      // calculate wavelet response
+      resX[x*h+y] = haarX(x*s, y*s, 4*s);
+      resY[x*h+y] = haarY(x*s, y*s, 4*s);
+      // angle of the gradient (up from x-axis)
+      Ang[x*h+y] = getAngle(resX[x*h+y], resY[x*h+y]);
+    }
+  }
+
+  // calculate the dominant direction 
+  float sumX=0.f, sumY=0.f;
+  float max=0.f, orientation = 0.f;
+  float ang1=0.f, ang2=0.f;
+
+  // loop slides pi/3 window from ang1 to ang2
+  // increments of .15 radians
+  for(ang1 = 0; ang1 < 2*pi;  ang1+=0.15f) {
+    ang2 = ( ang1+pi/3.0f > 2*pi ? ang1-5.0f*pi/3.0f : ang1+pi/3.0f);
+
+    sumX = sumY = 0.f; 
+    for(unsigned int k = 0; k < Ang.size(); ++k) 
+    {
+      // get angle from the x-axis of the sample point
+      const float & ang = Ang[k];
+
+      // determine whether the point's gradient is within the window
+      // if so, add its x and y componenets to our sums 
+      if (ang1 < ang2 && ang1 < ang && ang < ang2) 
+      {
+        sumX+=resX[k];  
+        sumY+=resY[k];
+      } 
+      else if (ang2 < ang1 && 
+        ((ang > 0 && ang < ang2) || (ang > ang1 && ang < 2*pi) )) 
+      {
+        sumX+=resX[k];  
+        sumY+=resY[k];
+      }
+    }
+
+    // if the vector produced from this window is longer than all 
+    // previous vectors then this forms the new dominant direction
+    if (sumX*sumX + sumY*sumY > max) 
+    {
+      // store largest orientation
+      max = sumX*sumX + sumY*sumY;
+      orientation = getAngle(sumX, sumY);
+
+      std::cout<<" New maximum: "<<max<<" at orientation "<<orientation<<std::endl;
+    }
+  }
+
+  //print orientation?
+  std::cout<<" Image orientation is: "<<orientation<<" at scale "<<scale<<std::endl;
+  return;
 }
 
 //-------------------------------------------------------
