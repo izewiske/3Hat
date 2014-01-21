@@ -4,11 +4,11 @@
 
 #include <string>
 #ifdef USE_GL
-	#ifdef __APPLE__
-	#include <GLUT/glut.h>
-	#ifndef __APPLE__
-	#include <GL/glut.h>
-	#endif
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#else
+#include <GL/glut.h>
+#endif
 #endif
 #include "eriolHeader.h"
 

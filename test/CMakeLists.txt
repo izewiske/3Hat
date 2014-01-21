@@ -10,7 +10,7 @@ add_library(Eriol STATIC eriolObjs.o)
 SET_TARGET_PROPERTIES(
   Eriol
   PROPERTIES
-  LINKER_LANGUAGE C++
+  LINKER_LANGUAGE C
   )
 
 
