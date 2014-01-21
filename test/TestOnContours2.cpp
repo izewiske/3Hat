@@ -181,7 +181,7 @@ int main(int argc, char **argv) {
 	if ( ! NO_DISPLAY ) init_gl_window();	// does not return
 #endif
 	// examples of loading and saving information about contours
-	vector<PixelLoc> in = getContour("100scottt", "1149");
+	vector<PixelLoc> in = getContour("100scottt", "1149R");
 	if ( in.empty() ) cerr << " in.empty()" << endl;
 	else {
 		cerr << "# of Pixels " << in.size() << " First pixel: " << in[0] << " Last pixel: " << in.back() << endl;
@@ -193,7 +193,7 @@ int main(int argc, char **argv) {
 				cout <<	"Could not open or find the image" << std::endl ;
 				return -1;
 		}
-		std::vector<PixelLoc> pixels = getContour("100scottt", "1149L");
+		std::vector<PixelLoc> pixels = getContour("100scottt", "1149R");
 		std::cerr<< "Number of pixels: "  << pixels.size() << endl;
 
 
