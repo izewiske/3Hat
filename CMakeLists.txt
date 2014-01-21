@@ -12,12 +12,13 @@ foreach(_lib ${GLUT_LIBRARIES})
 endforeach()
 set(GLUT_LIBRARIES ${_glut_libraries})
 
-set(CMAKE_CXX_FLAGS "-g -Wall -DUSE_GL")
+set(CMAKE_CXX_FLAGS "-g -Wall")
 
 if (CMAKE_COMPILER_IS_GNUCXX)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 endif()
 
+add_definitions(-DUSE_GL)
 
 add_subdirectory(src)
 add_subdirectory(test)

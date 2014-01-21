@@ -83,7 +83,7 @@ cv::Mat sliceContour(std::vector<PixelLoc> contourPixels, cv::Mat image){
 // 		cv::waitKey(0);
 // 		return 0;
 // }
-/*
+
 #ifdef USE_GL
 void commonKeyboard( unsigned char c, int x, int y, int windowIndex)
 {
@@ -134,7 +134,7 @@ void mouse(int button, int state, int x, int y, int windowIndex) {
 	}
 	glutPostRedisplay();
 }
-#endif*/
+#endif
 
 // simple usage message for how to use this program
 void usage(const char *progname) {
