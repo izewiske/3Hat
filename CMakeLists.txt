@@ -12,9 +12,9 @@ foreach(_lib ${GLUT_LIBRARIES})
 endforeach()
 set(GLUT_LIBRARIES ${_glut_libraries})
 
+set(CMAKE_CXX_FLAGS "-g -Wall -DUSE_GL")
 
 if (CMAKE_COMPILER_IS_GNUCXX)
-	set(CMAKE_CXX_FLAGS "-g -Wall -DUSE_GL")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 endif()
 
