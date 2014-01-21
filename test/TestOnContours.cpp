@@ -3,6 +3,13 @@
 //#include "ContourMatcherExceptions.h"
 
 #include <string>
+#include "eriolHeader.h"
+
+#include <opencv2/opencv.hpp>
+#include "opencv2/highgui/highgui.hpp"
+#include <opencv2/features2d/features2d.hpp>
+#include "opencv2/imgproc/imgproc.hpp"
+
 #ifdef USE_GL
 #ifdef __APPLE__
 #include <GLUT/glut.h>
@@ -10,12 +17,7 @@
 #include <GL/glut.h>
 #endif
 #endif
-#include "eriolHeader.h"
 
-#include <opencv2/opencv.hpp>
-#include "opencv2/highgui/highgui.hpp"
-#include <opencv2/features2d/features2d.hpp>
-#include "opencv2/imgproc/imgproc.hpp"
 
 //#include "../src/UtilityFunctions.h"
 

@@ -3,6 +3,12 @@
 //#include "ContourMatcherExceptions.h"
 
 #include <string.h>
+#include "eriolHeader.h"
+#include <opencv2/opencv.hpp>
+#include "opencv2/highgui/highgui.hpp"
+#include <opencv2/features2d/features2d.hpp>
+#include "opencv2/imgproc/imgproc.hpp"
+
 using namespace std;
 #ifdef USE_GL
 #ifdef __APPLE__
@@ -13,12 +19,7 @@ using namespace std;
 #endif
 
 
-#include "eriolHeader.h"
 
-#include <opencv2/opencv.hpp>
-#include "opencv2/highgui/highgui.hpp"
-#include <opencv2/features2d/features2d.hpp>
-#include "opencv2/imgproc/imgproc.hpp"
 
 //#include "../src/UtilityFunctions.h"
 
@@ -186,14 +187,18 @@ int main(int argc, char **argv) {
 		cerr << "# of Pixels " << in.size() << " First pixel: " << in[0] << " Last pixel: " << in.back() << endl;
 
 		cv::Mat image;
-		image = cv::imread(argv[2], CV_LOAD_IMAGE_COLOR); 
+		image = cv::imread(imgName, CV_LOAD_IMAGE_COLOR); 
 
 		if(! image.data ) {
 				cout <<	"Could not open or find the image" << std::endl ;
 				return -1;
 		}
+		std::vector<PixelLoc> pixels = getContour("100scottt", "1149L");
+		std::cerr<< "Number of pixels: "  << pixels.size() << endl;
 
-		cv::Mat contour = sliceContour(getContour(argv[1],argv[2]),image);
+
+
+		cv::Mat contour = sliceContour(pixels,image);
 		cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );
 		cv::imshow( "Display window", contour );
 		cv::waitKey(0);
