@@ -2,6 +2,14 @@
 //#include "ContourMatcherStructs.h"
 //#include "ContourMatcherExceptions.h"
 
+#include <string>
+#ifdef USE_GL
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#else 
+#include <GL/glut.h>
+#endif
+#endif
 #include "eriolHeader.h"
 
 #include <opencv2/opencv.hpp>
@@ -51,28 +59,31 @@ cv::Mat sliceContour(std::vector<PixelLoc> contourPixels, cv::Mat image){
 
 int main( int argc, char** argv ) {
 
-    if( argc != 3) {
-    	// scottt100 1149L
-     cout <<" Usage: tileID image" << endl;
-     return -1;
-    }
+		if( argc != 3) {
+			// scottt100 1149L
+		 cout <<" Usage: tileID image" << endl;
+		 return -1;
+		}
 
-    //code from showTile.cpp from Olaf
-    Wright::selectedTileID = arg[1];
-    Wright::oneTileMode = true;
+		string tileID = argv[1];
+		string imageID = argv[2];
+
+		cv::Mat image;
+		image = cv::imread(argv[2], CV_LOAD_IMAGE_COLOR); 
+
+		if(! image.data ) {
+				cout <<	"Could not open or find the image" << std::endl ;
+				return -1;
+		}
+		std::vector<PixelLoc> pixels = getContour(tileID,imageID);
+		std::cerr<< "Number of pixels: "  << pixels.size() << endl;
 
 
-    cv::Mat image;
-    image = cv::imread(argv[2], CV_LOAD_IMAGE_COLOR); 
 
-    if(! image.data ) {
-        cout <<  "Could not open or find the image" << std::endl ;
-        return -1;
-    }
-
-    cv::Mat contour = sliceContour(getContour(argv[1],argv[2]),image);
-    cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );
-    cv::imshow( "Display window", contour );
-    cv::waitKey(0);
-    return 0;
+		cv::Mat contour = sliceContour(pixels,image);
+		cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );
+		cv::imshow( "Display window", contour );
+		cv::waitKey(0);
+		return 0;
 }
+
