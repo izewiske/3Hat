@@ -9,5 +9,9 @@ add_subdirectory(OpenSURF/src)
 add_subdirectory(src)
 add_subdirectory(test)
 
+add_subdirectory(waveletlib/src/shared)
+add_subdirectory(waveletlib/src/static)
+add_subdirectory(waveletlib/examples)
+
 enable_testing()
 add_test( OpenCV-Test RunMatcherTests ${testdriver} )
