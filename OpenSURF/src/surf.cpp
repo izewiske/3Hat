@@ -223,7 +223,7 @@ void Surf::getOrientationGlobal(const float scale, const int init_sample)
       max = sumX*sumX + sumY*sumY;
       orientation = getAngle(sumX, sumY);
 
-      std::cout<<" New maximum: "<<max<<" at orientation "<<orientation<<std::endl;
+      //std::cout<<" New maximum: "<<max<<" at orientation "<<orientation<<std::endl;
     }
   }
 

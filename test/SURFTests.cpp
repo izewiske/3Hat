@@ -111,14 +111,15 @@ int mainStaticMatchStrengths()
   {
     float strengthOverThreshold = 1 - matches[i].second; // /MATCH_THRESHOLD;
     strengthOverThreshold*=255;
+    CvScalar clr = cvScalar(strengthOverThreshold,strengthOverThreshold,strengthOverThreshold);
     
-    drawPoint(img1,matches[i].first.first,cvScalar(strengthOverThreshold,strengthOverThreshold,strengthOverThreshold));
-    drawPoint(img2,matches[i].first.second,cvScalar(strengthOverThreshold,strengthOverThreshold,strengthOverThreshold)),
+    drawPoint(img1,matches[i].first.first,clr);
+    drawPoint(img2,matches[i].first.second,clr),
     std::cout<<"  "<<i<<" inverse strength: "<<matches[i].second<<"\n";
     std::cout<<"  "<<i<<" strength over threshold: "<<strengthOverThreshold<<std::endl;
   
-    cvLine(img1,cvPoint(matches[i].first.first.x,matches[i].first.first.y),cvPoint(matches[i].first.second.x+w,matches[i].first.second.y), cvScalar(255,255,255),1);
-    cvLine(img2,cvPoint(matches[i].first.first.x-w,matches[i].first.first.y),cvPoint(matches[i].first.second.x,matches[i].first.second.y), cvScalar(255,255,255),1);
+    cvLine(img1,cvPoint(matches[i].first.first.x,matches[i].first.first.y),cvPoint(matches[i].first.second.x+w,matches[i].first.second.y), clr,1);
+    cvLine(img2,cvPoint(matches[i].first.first.x-w,matches[i].first.first.y),cvPoint(matches[i].first.second.x,matches[i].first.second.y), clr,1);
   }
 
   std::cout<< "Matches: " << matches.size() << std::endl;
