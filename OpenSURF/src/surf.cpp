@@ -168,6 +168,9 @@ void Surf::getOrientationGlobal(const float scale, const int init_sample)
   // what is init_sample? do we need this at all?
   int w = width/init_sample/s;
   int h = height/init_sample/s;
+  // TEMP
+  w = width/(2*s*init_sample);
+  h = height/(2*s*init_sample);
 
   const int numpoints = w*h;
 
@@ -178,9 +181,9 @@ void Surf::getOrientationGlobal(const float scale, const int init_sample)
   for (int x=0; x<w; x++){
     for (int y=0; y<h; y++){
       // calculate wavelet response at this point and scale
-      resX[x*h+y] = haarX(x*s, y*s, 4*s);
+      resX[x*h+y] = haarX(x*s*2, y*s*2, 2*s);
       totX+=resX[x*h+y];
-      resY[x*h+y] = haarY(x*s, y*s, 4*s);
+      resY[x*h+y] = haarY(x*s*2, y*s*2, 2*s);
       totY+=resY[x*h+y];
       // angle of the gradient (up from x-axis)
       Ang[x*h+y] = getAngle(resX[x*h+y], resY[x*h+y]);
