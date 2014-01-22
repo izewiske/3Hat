@@ -172,17 +172,22 @@ void Surf::getOrientationGlobal(const float scale, const int init_sample)
   const int numpoints = w*h;
 
   std::vector<float> resX(numpoints), resY(numpoints), Ang(numpoints);
+  float totX=0.f, totY=0.f;
 
   // calculate haar response for the entire image at this scale
   for (int x=0; x<w; x++){
     for (int y=0; y<h; y++){
-      // calculate wavelet response
+      // calculate wavelet response at this point and scale
       resX[x*h+y] = haarX(x*s, y*s, 4*s);
+      totX+=resX[x*h+y];
       resY[x*h+y] = haarY(x*s, y*s, 4*s);
+      totY+=resY[x*h+y];
       // angle of the gradient (up from x-axis)
       Ang[x*h+y] = getAngle(resX[x*h+y], resY[x*h+y]);
     }
   }
+
+  std::cout<<" Angle from totals: "<<getAngle(totX,totY)<<" at scale "<<scale<<std::endl;
 
   // calculate the dominant direction 
   float sumX=0.f, sumY=0.f;
@@ -228,7 +233,7 @@ void Surf::getOrientationGlobal(const float scale, const int init_sample)
   }
 
   //print orientation?
-  std::cout<<" Image orientation is: "<<orientation<<" at scale "<<scale<<std::endl;
+  std::cout<<" Image orientation is: "<<orientation<<" at scale "<<scale<<"\n"<<std::endl;
   return;
 }
 
@@ -355,6 +360,8 @@ inline float Surf::gaussian(float x, float y, float sig)
 //! Calculate Haar wavelet responses in x direction
 inline float Surf::haarX(int row, int column, int s)
 {
+  //recall integral starts at row col specified by 2nd, 3rd parameters, then runs # of rows and
+  //columns specified by 4th and 5th parameters
   return BoxIntegral(img, row-s/2, column, s, s/2) 
     -1 * BoxIntegral(img, row-s/2, column-s/2, s, s/2);
 }
