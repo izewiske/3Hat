@@ -214,9 +214,11 @@ void Surf::getOrientationGlobal(const int init_sample)
     // what is init_sample? do we need this at all?
     int w = width/init_sample/s;
     int h = height/init_sample/s;
+
     // TEMP
-    w = width/(2*s);
-    h = height/(2*s);
+    int sfactor = 1;
+    w = width/(sfactor*s);
+    h = height/(sfactor*s);
   
     const int numpoints = w*h;
   
@@ -227,9 +229,9 @@ void Surf::getOrientationGlobal(const int init_sample)
     for (int x=0; x<w; x++){
       for (int y=0; y<h; y++){
         // calculate wavelet response at this point and scale
-        resX[x*h+y] = haarX(x*s*2, y*s*2, 2*s);
+        resX[x*h+y] = haarX(x*s*sfactor, y*s*sfactor, sfactor*s);
         totX+=resX[x*h+y];
-        resY[x*h+y] = haarY(x*s*2, y*s*2, 2*s);
+        resY[x*h+y] = haarY(x*s*sfactor, y*s*sfactor, sfactor*s);
         totY+=resY[x*h+y];
         // angle of the gradient (up from x-axis)
         Ang[x*h+y] = getAngle(resX[x*h+y], resY[x*h+y]);
@@ -238,13 +240,10 @@ void Surf::getOrientationGlobal(const int init_sample)
       }
     }
 
-    std::cout<<" Angle from totals: "<<getAngle(totX,totY)<<" at scale "<<scale<<std::endl;
+    //std::cout<<" Angle from totals: "<<getAngle(totX,totY)<<" at scale "<<scale<<std::endl;
     
     float orientation = 0.f;
 
-    orientation = getAngle(totX,totY);
-
-    /*
     // calculate the dominant direction 
     float sumX=0.f, sumY=0.f;
     float max=0.f;
@@ -287,10 +286,10 @@ void Surf::getOrientationGlobal(const int init_sample)
         //std::cout<<" New maximum: "<<max<<" at orientation "<<orientation<<std::endl;
       }
     }
-    */
     
-    //print orientation?
-    std::cout<<" Image orientation is: "<<orientation<<" at scale "<<scale<<"\n"<<std::endl;
+    //std::cout<<" Image orientation is: "<<orientation<<" at scale "<<scale<<"\n"<<std::endl;
+
+//    orientation = getAngle(totX,totY);
 
     oris[scale] = orientation;
   

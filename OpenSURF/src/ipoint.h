@@ -29,6 +29,7 @@ typedef std::vector<std::pair<std::pair<Ipoint, Ipoint>, float> > MatchVec;
 //! Ipoint operations
 void getMatches(IpVec &ipts1, IpVec &ipts2, IpPairVec &matches);
 void getMatches(IpVec &ipts1, IpVec &ipts2, MatchVec &matches);
+void getMatchesSymmetric(IpVec &ipts1, IpVec &ipts2, MatchVec &matches);
 int translateCorners(IpPairVec &matches, const CvPoint src_corners[4], CvPoint dst_corners[4]);
 
 //-------------------------------------------------------

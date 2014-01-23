@@ -85,6 +85,8 @@ int mainStaticMatch()
 
 int mainStaticMatchStrengths()
 {
+  bool matchGlobalOrientations = true;
+
   // Make images as Mats; convert to IplImage for OpenSURF library actions
   cv::Mat mimg1, mimg2;
   mimg1=cv::imread("OpenSURF/imgs/img1.jpg", CV_LOAD_IMAGE_COLOR);
@@ -99,11 +101,11 @@ int mainStaticMatchStrengths()
   img2 = &iimg2;
 
   IpVec ipts1, ipts2;
-  surfDetDes(img1,ipts1,false,4,4,2,0.0001f,true);
-  surfDetDes(img2,ipts2,false,4,4,2,0.0001f,true);
+  surfDetDes(img1,ipts1,false,4,4,2,0.0001f,matchGlobalOrientations);
+  surfDetDes(img2,ipts2,false,4,4,2,0.0001f,matchGlobalOrientations);
 
   MatchVec matches;
-  getMatches(ipts1,ipts2,matches);
+  getMatchesSymmetric(ipts1,ipts2,matches);
 
   IpVec mpts1, mpts2;
 
@@ -114,6 +116,7 @@ int mainStaticMatchStrengths()
     float strengthOverThreshold = 1 - matches[i].second; // /MATCH_THRESHOLD;
     strengthOverThreshold*=255;
     CvScalar clr = cvScalar(strengthOverThreshold,strengthOverThreshold,strengthOverThreshold);
+    clr = cvScalar(255,255,255);
     
     //drawPoint(img1,matches[i].first.first,clr);
     //drawPoint(img2,matches[i].first.second,clr),

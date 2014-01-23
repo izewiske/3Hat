@@ -53,6 +53,8 @@ void getMatches(IpVec &ipts1, IpVec &ipts2, IpPairVec &matches)
   }
 }
 
+//-------------------------------------------------------
+
 //! Populate IpPairVec with matched ipts AND strength of match (ratio of first over second match val)
 void getMatches(IpVec &ipts1, IpVec &ipts2, MatchVec &matches){
   float dist, d1, d2;
@@ -90,6 +92,82 @@ void getMatches(IpVec &ipts1, IpVec &ipts2, MatchVec &matches){
     }
   }
 }
+
+//-------------------------------------------------------
+
+//! Populate IpPairVec with matched ipts AND strength of match (ratio of first over second match val)
+//! Invariant to ordering of &ipts1 vs &ipts2
+//! Current: just gets all the matches from both directions
+//! Future: limit each point to one match?
+void getMatchesSymmetric(IpVec &ipts1, IpVec &ipts2, MatchVec &matches){
+  float dist, d1, d2;
+  Ipoint *match;
+
+  matches.clear();
+
+  for(unsigned int i = 0; i < ipts1.size(); i++) 
+  {
+    d1 = d2 = FLT_MAX;
+
+    for(unsigned int j = 0; j < ipts2.size(); j++) 
+    {
+      dist = ipts1[i] - ipts2[j];  
+
+      if(dist<d1) // if this feature matches better than current best
+      {
+        d2 = d1;
+        d1 = dist;
+        match = &ipts2[j];
+      }
+      else if(dist<d2) // this feature matches better than second best
+      {
+        d2 = dist;
+      }
+    }
+
+    // If match has a d1:d2 ratio < MATCH_THRESHOLD ipoints are a match
+    if(d1/d2 < MATCH_THRESHOLD) 
+    { 
+      // Store the change in position, the match, and the match strength
+      ipts1[i].dx = match->x - ipts1[i].x; 
+      ipts1[i].dy = match->y - ipts1[i].y;
+      matches.push_back(std::make_pair(std::make_pair(ipts1[i], *match), d1/d2));
+    }
+  }
+
+  for(unsigned int i = 0; i < ipts2.size(); i++) 
+  {
+    d1 = d2 = FLT_MAX;
+
+    for(unsigned int j = 0; j < ipts1.size(); j++) 
+    {
+      dist = ipts2[i] - ipts1[j];  
+
+      if(dist<d1) // if this feature matches better than current best
+      {
+        d2 = d1;
+        d1 = dist;
+        match = &ipts1[j];
+      }
+      else if(dist<d2) // this feature matches better than second best
+      {
+        d2 = dist;
+      }
+    }
+
+    // If match has a d1:d2 ratio < MATCH_THRESHOLD ipoints are a match
+    if(d1/d2 < MATCH_THRESHOLD) 
+    { 
+      // Store the change in position, the match, and the match strength
+      ipts2[i].dx = match->x - ipts2[i].x; 
+      ipts2[i].dy = match->y - ipts2[i].y;
+      matches.push_back(std::make_pair(std::make_pair(*match, ipts2[i]), d1/d2));
+    }
+  }
+
+}
+
+//-------------------------------------------------------
 
 //
 // This function uses homography with CV_RANSAC (OpenCV 1.1)
