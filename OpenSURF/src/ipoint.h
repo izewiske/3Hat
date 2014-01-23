@@ -60,6 +60,14 @@ public:
     return sqrt(sum);
   };
 
+  //! Compares two Ipoints
+  bool operator==(const Ipoint &rhs) const {
+    for (int i=0; i<64; i++)
+      if (this->descriptor[i]!=rhs.descriptor[i])
+        return false;
+    return true;
+  }
+
   //! Coordinates of the detected interest point
   float x, y;
 

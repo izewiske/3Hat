@@ -138,6 +138,49 @@ int mainStaticMatchStrengths()
   cvShowImage("2",img2);
   cvWaitKey(0);
 
+  // NOW DO IT AGAIN!
+  mimg1=cv::imread("OpenSURF/imgs/img1.jpg", CV_LOAD_IMAGE_COLOR);
+  mimg2=cv::imread("OpenSURF/imgs/img2.jpg", CV_LOAD_IMAGE_COLOR);
+
+  iimg1=mimg1;
+  iimg2=mimg2;
+
+  img1 = &iimg1;
+  img2 = &iimg2;
+
+  surfDetDes(img1,ipts1,false,4,4,2,0.0001f,!matchGlobalOrientations);
+  surfDetDes(img2,ipts2,false,4,4,2,0.0001f,!matchGlobalOrientations);
+
+  getMatchesSymmetric(ipts1,ipts2,matches);
+
+  for (unsigned int i = 0; i < matches.size(); ++i)
+  {
+    float strengthOverThreshold = 1 - matches[i].second; // /MATCH_THRESHOLD;
+    strengthOverThreshold*=255;
+    CvScalar clr = cvScalar(strengthOverThreshold,strengthOverThreshold,strengthOverThreshold);
+    clr = cvScalar(255,255,255);
+    
+    //drawPoint(img1,matches[i].first.first,clr);
+    //drawPoint(img2,matches[i].first.second,clr),
+    mpts1.push_back(matches[i].first.first);
+    mpts2.push_back(matches[i].first.second);
+  
+    cvLine(img1,cvPoint(matches[i].first.first.x,matches[i].first.first.y),cvPoint(matches[i].first.second.x+w,matches[i].first.second.y), clr,1);
+    cvLine(img2,cvPoint(matches[i].first.first.x-w,matches[i].first.first.y),cvPoint(matches[i].first.second.x,matches[i].first.second.y), clr,1);
+  }
+
+  drawIpoints(img1,mpts1);
+  drawIpoints(img2,mpts2);
+
+  std::cout<< "Matches: " << matches.size() << std::endl;
+
+  cvNamedWindow("1", CV_WINDOW_AUTOSIZE );
+  cvNamedWindow("2", CV_WINDOW_AUTOSIZE );
+  cvShowImage("1", img1);
+  cvShowImage("2",img2);
+  cvWaitKey(0);
+
+
   return 0;
 }
 

@@ -100,8 +100,17 @@ void getMatches(IpVec &ipts1, IpVec &ipts2, MatchVec &matches){
 //! Current: just gets all the matches from both directions
 //! Future: limit each point to one match?
 void getMatchesSymmetric(IpVec &ipts1, IpVec &ipts2, MatchVec &matches){
-  float dist, d1, d2;
+  float d1, d2;
+  float** dists;
   Ipoint *match;
+
+  dists = new float*[ipts1.size()];
+  for (unsigned int i=0; i<ipts1.size(); i++)
+    dists[i]= new float[ipts2.size()];
+
+  // matches detected from each direction (comparing ipts1 to ipts2 vs. ipts2 to ipts1)
+  MatchVec m1;
+  MatchVec m2;
 
   matches.clear();
 
@@ -111,17 +120,17 @@ void getMatchesSymmetric(IpVec &ipts1, IpVec &ipts2, MatchVec &matches){
 
     for(unsigned int j = 0; j < ipts2.size(); j++) 
     {
-      dist = ipts1[i] - ipts2[j];  
+      dists[i][j] = ipts1[i] - ipts2[j];  
 
-      if(dist<d1) // if this feature matches better than current best
+      if(dists[i][j]<d1) // if this feature matches better than current best
       {
         d2 = d1;
-        d1 = dist;
+        d1 = dists[i][j];
         match = &ipts2[j];
       }
-      else if(dist<d2) // this feature matches better than second best
+      else if(dists[i][j]<d2) // this feature matches better than second best
       {
-        d2 = dist;
+        d2 = dists[i][j];
       }
     }
 
@@ -131,7 +140,7 @@ void getMatchesSymmetric(IpVec &ipts1, IpVec &ipts2, MatchVec &matches){
       // Store the change in position, the match, and the match strength
       ipts1[i].dx = match->x - ipts1[i].x; 
       ipts1[i].dy = match->y - ipts1[i].y;
-      matches.push_back(std::make_pair(std::make_pair(ipts1[i], *match), d1/d2));
+      m1.push_back(std::make_pair(std::make_pair(ipts1[i], *match), d1/d2));
     }
   }
 
@@ -141,17 +150,15 @@ void getMatchesSymmetric(IpVec &ipts1, IpVec &ipts2, MatchVec &matches){
 
     for(unsigned int j = 0; j < ipts1.size(); j++) 
     {
-      dist = ipts2[i] - ipts1[j];  
-
-      if(dist<d1) // if this feature matches better than current best
+      if(dists[j][i]<d1) // if this feature matches better than current best
       {
         d2 = d1;
-        d1 = dist;
+        d1 = dists[j][i];
         match = &ipts1[j];
       }
-      else if(dist<d2) // this feature matches better than second best
+      else if(dists[j][i]<d2) // this feature matches better than second best
       {
-        d2 = dist;
+        d2 = dists[j][i];
       }
     }
 
@@ -161,9 +168,14 @@ void getMatchesSymmetric(IpVec &ipts1, IpVec &ipts2, MatchVec &matches){
       // Store the change in position, the match, and the match strength
       ipts2[i].dx = match->x - ipts2[i].x; 
       ipts2[i].dy = match->y - ipts2[i].y;
-      matches.push_back(std::make_pair(std::make_pair(*match, ipts2[i]), d1/d2));
+      m2.push_back(std::make_pair(std::make_pair(*match, ipts2[i]), d1/d2));
     }
   }
+  
+  for (unsigned int i = 0; i < m1.size(); i++)
+    for (unsigned int j = 0; j< m2.size(); j++)
+      if (m1[i].first==m2[j].first)
+        matches.push_back(m1[i]);
 
 }
 
