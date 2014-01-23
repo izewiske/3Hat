@@ -99,11 +99,13 @@ int mainStaticMatchStrengths()
   img2 = &iimg2;
 
   IpVec ipts1, ipts2;
-  surfDetDes(img1,ipts1,false,4,4,2,0.0001f);
-  surfDetDes(img2,ipts2,false,4,4,2,0.0001f);
+  surfDetDes(img1,ipts1,false,4,4,2,0.0001f,true);
+  surfDetDes(img2,ipts2,false,4,4,2,0.0001f,true);
 
   MatchVec matches;
   getMatches(ipts1,ipts2,matches);
+
+  IpVec mpts1, mpts2;
 
   const int & w = img1->width;
 
@@ -113,12 +115,17 @@ int mainStaticMatchStrengths()
     strengthOverThreshold*=255;
     CvScalar clr = cvScalar(strengthOverThreshold,strengthOverThreshold,strengthOverThreshold);
     
-    drawPoint(img1,matches[i].first.first,clr);
-    drawPoint(img2,matches[i].first.second,clr),
+    //drawPoint(img1,matches[i].first.first,clr);
+    //drawPoint(img2,matches[i].first.second,clr),
+    mpts1.push_back(matches[i].first.first);
+    mpts2.push_back(matches[i].first.second);
   
     cvLine(img1,cvPoint(matches[i].first.first.x,matches[i].first.first.y),cvPoint(matches[i].first.second.x+w,matches[i].first.second.y), clr,1);
     cvLine(img2,cvPoint(matches[i].first.first.x-w,matches[i].first.first.y),cvPoint(matches[i].first.second.x,matches[i].first.second.y), clr,1);
   }
+
+  drawIpoints(img1,mpts1);
+  drawIpoints(img2,mpts2);
 
   std::cout<< "Matches: " << matches.size() << std::endl;
 

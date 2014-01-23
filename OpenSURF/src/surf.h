@@ -18,6 +18,7 @@
 #include "fasthessian.h"
 
 #include <vector>
+#include <unordered_map>
 
 class Surf {
   
@@ -28,9 +29,7 @@ class Surf {
 
     //! Describe all features in the supplied vector
     void getDescriptors(bool bUpright = false);
-  
-    //! Determine global orientation of the image at the given scale
-    void getOrientationGlobal(const float scale, const int init_sample=INIT_SAMPLE);
+    void getDescriptorsGlobal(bool bUpright = false, const int init_sample=INIT_SAMPLE);
 
   private:
     
@@ -39,6 +38,9 @@ class Surf {
     //! Assign the current Ipoint an orientation
     void getOrientation();
     
+    //! Determine global orientation of the image at the given scale
+    void getOrientationGlobal(const int init_sample=INIT_SAMPLE);
+
     //! Get the descriptor. See Agrawal ECCV 08
     void getDescriptor(bool bUpright = false);
 
@@ -64,6 +66,9 @@ class Surf {
 
     //! Index of current Ipoint in the vector
     int index;
+
+    //! Map of scales to global orientations
+    std::unordered_map<int,float> oris;
 };
 
 

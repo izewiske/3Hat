@@ -157,87 +157,145 @@ void Surf::getOrientation()
 
 //-------------------------------------------------------
 
-//! Determine the global orientation of the image at the given scale
-void Surf::getOrientationGlobal(const float scale, const int init_sample)
+//! Describe all features in the supplied vector
+void Surf::getDescriptorsGlobal(bool upright, const int init_sample)
 {
-  // round scale to integer
-  const int s = fRound(scale);
-  // determine number of points in the image at this scale
-  int width = img->width;
-  int height = img->height;
-  // what is init_sample? do we need this at all?
-  int w = width/init_sample/s;
-  int h = height/init_sample/s;
-  // TEMP
-  w = width/(2*s*init_sample);
-  h = height/(2*s*init_sample);
+  // Check there are Ipoints to be described
+  if (!ipts.size()) return;
 
-  const int numpoints = w*h;
+  // Get the size of the vector for fixed loop bounds
+  int ipts_size = (int)ipts.size();
 
-  std::vector<float> resX(numpoints), resY(numpoints), Ang(numpoints);
-  float totX=0.f, totY=0.f;
+  if (upright)
+  {
+    // U-SURF loop just gets descriptors
+    for (int i = 0; i < ipts_size; ++i)
+    {
+      // Set the Ipoint to be described
+      index = i;
 
-  // calculate haar response for the entire image at this scale
-  for (int x=0; x<w; x++){
-    for (int y=0; y<h; y++){
-      // calculate wavelet response at this point and scale
-      resX[x*h+y] = haarX(x*s*2, y*s*2, 2*s);
-      totX+=resX[x*h+y];
-      resY[x*h+y] = haarY(x*s*2, y*s*2, 2*s);
-      totY+=resY[x*h+y];
-      // angle of the gradient (up from x-axis)
-      Ang[x*h+y] = getAngle(resX[x*h+y], resY[x*h+y]);
+      // Extract upright (i.e. not rotation invariant) descriptors
+      getDescriptor(true);
     }
   }
-
-  std::cout<<" Angle from totals: "<<getAngle(totX,totY)<<" at scale "<<scale<<std::endl;
-
-  // calculate the dominant direction 
-  float sumX=0.f, sumY=0.f;
-  float max=0.f, orientation = 0.f;
-  float ang1=0.f, ang2=0.f;
-
-  // loop slides pi/3 window from ang1 to ang2
-  // increments of .15 radians
-  for(ang1 = 0; ang1 < 2*pi;  ang1+=0.15f) {
-    ang2 = ( ang1+pi/3.0f > 2*pi ? ang1-5.0f*pi/3.0f : ang1+pi/3.0f);
-
-    sumX = sumY = 0.f; 
-    for(unsigned int k = 0; k < Ang.size(); ++k) 
+  else
+  {
+    // Main SURF-64 loop assigns orientations and gets descriptors
+    for (int i = 0; i < ipts_size; ++i)
     {
-      // get angle from the x-axis of the sample point
-      const float & ang = Ang[k];
+      // Set the Ipoint to be described
+      index = i;
 
-      // determine whether the point's gradient is within the window
-      // if so, add its x and y componenets to our sums 
-      if (ang1 < ang2 && ang1 < ang && ang < ang2) 
-      {
-        sumX+=resX[k];  
-        sumY+=resY[k];
-      } 
-      else if (ang2 < ang1 && 
-        ((ang > 0 && ang < ang2) || (ang > ang1 && ang < 2*pi) )) 
-      {
-        sumX+=resX[k];  
-        sumY+=resY[k];
+      // Assign Orientations and extract rotation invariant descriptors
+      getOrientationGlobal(init_sample);
+      getDescriptor(false);
+    }
+  }
+}
+
+//-------------------------------------------------------
+
+//! Determine the global orientation of the image at the given scale
+void Surf::getOrientationGlobal(const int init_sample)
+{
+  // setup
+  Ipoint *ipt = &ipts[index];
+  int scale = fRound(ipt->scale);
+
+  // have we already calculated the global orientation at this scale?
+  if (oris.count(scale))
+    ipt->orientation = oris[scale];
+  else {
+    // round scale to integer
+    const int s = fRound(scale);
+    // determine number of points in the image at this scale
+    int width = img->width;
+    int height = img->height;
+    // what is init_sample? do we need this at all?
+    int w = width/init_sample/s;
+    int h = height/init_sample/s;
+    // TEMP
+    w = width/(2*s);
+    h = height/(2*s);
+  
+    const int numpoints = w*h;
+  
+    std::vector<float> resX(numpoints), resY(numpoints), Ang(numpoints);
+    float totX=0.f, totY=0.f;
+
+    // calculate haar response for the entire image at this scale
+    for (int x=0; x<w; x++){
+      for (int y=0; y<h; y++){
+        // calculate wavelet response at this point and scale
+        resX[x*h+y] = haarX(x*s*2, y*s*2, 2*s);
+        totX+=resX[x*h+y];
+        resY[x*h+y] = haarY(x*s*2, y*s*2, 2*s);
+        totY+=resY[x*h+y];
+        // angle of the gradient (up from x-axis)
+        Ang[x*h+y] = getAngle(resX[x*h+y], resY[x*h+y]);
+
+        //std::cout<<"x: "<<x*s*2<<"\ty: "<<y*s*2<<std::endl;
       }
     }
 
-    // if the vector produced from this window is longer than all 
-    // previous vectors then this forms the new dominant direction
-    if (sumX*sumX + sumY*sumY > max) 
-    {
-      // store largest orientation
-      max = sumX*sumX + sumY*sumY;
-      orientation = getAngle(sumX, sumY);
+    std::cout<<" Angle from totals: "<<getAngle(totX,totY)<<" at scale "<<scale<<std::endl;
+    
+    float orientation = 0.f;
 
-      //std::cout<<" New maximum: "<<max<<" at orientation "<<orientation<<std::endl;
+    orientation = getAngle(totX,totY);
+
+    /*
+    // calculate the dominant direction 
+    float sumX=0.f, sumY=0.f;
+    float max=0.f;
+    float ang1=0.f, ang2=0.f;
+
+    // loop slides pi/3 window from ang1 to ang2
+    // increments of .15 radians
+    for(ang1 = 0; ang1 < 2*pi;  ang1+=0.15f) {
+      ang2 = ( ang1+pi/3.0f > 2*pi ? ang1-5.0f*pi/3.0f : ang1+pi/3.0f);
+
+      sumX = sumY = 0.f; 
+      for(unsigned int k = 0; k < Ang.size(); ++k) 
+      {
+        // get angle from the x-axis of the sample point
+        const float & ang = Ang[k];
+  
+        // determine whether the point's gradient is within the window
+        // if so, add its x and y componenets to our sums 
+        if (ang1 < ang2 && ang1 < ang && ang < ang2) 
+        {
+          sumX+=resX[k];  
+          sumY+=resY[k];
+        } 
+        else if (ang2 < ang1 && 
+          ((ang > 0 && ang < ang2) || (ang > ang1 && ang < 2*pi) )) 
+        {
+          sumX+=resX[k];  
+          sumY+=resY[k];
+        }
+      }
+  
+      // if the vector produced from this window is longer than all 
+      // previous vectors then this forms the new dominant direction
+      if (sumX*sumX + sumY*sumY > max) 
+      {
+        // store largest orientation
+        max = sumX*sumX + sumY*sumY;
+        orientation = getAngle(sumX, sumY);
+  
+        //std::cout<<" New maximum: "<<max<<" at orientation "<<orientation<<std::endl;
+      }
     }
-  }
+    */
+    
+    //print orientation?
+    std::cout<<" Image orientation is: "<<orientation<<" at scale "<<scale<<"\n"<<std::endl;
 
-  //print orientation?
-  std::cout<<" Image orientation is: "<<orientation<<" at scale "<<scale<<"\n"<<std::endl;
-  return;
+    oris[scale] = orientation;
+  
+    ipt->orientation = orientation;
+  } //calc new orientation
 }
 
 //-------------------------------------------------------
@@ -365,6 +423,7 @@ inline float Surf::haarX(int row, int column, int s)
 {
   //recall integral starts at row col specified by 2nd, 3rd parameters, then runs # of rows and
   //columns specified by 4th and 5th parameters
+
   return BoxIntegral(img, row-s/2, column, s, s/2) 
     -1 * BoxIntegral(img, row-s/2, column-s/2, s, s/2);
 }

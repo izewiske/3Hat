@@ -29,7 +29,8 @@ inline void surfDetDes(IplImage *img,  /* image to find Ipoints in */
                        int octaves = OCTAVES, /* number of octaves to calculate */
                        int intervals = INTERVALS, /* number of intervals per octave */
                        int init_sample = INIT_SAMPLE, /* initial sampling step */
-                       float thres = THRES /* blob response threshold */)
+                       float thres = THRES, /* blob response threshold */
+		       bool global = false) /* run in global orientation mode? */
 {
   // Create integral-image representation of the image
   IplImage *int_img = Integral(img);
@@ -44,14 +45,10 @@ inline void surfDetDes(IplImage *img,  /* image to find Ipoints in */
   Surf des(int_img, ipts);
 
   // Extract the descriptors for the ipts
-  des.getDescriptors(upright);
-
-  // --TESTING-- Get global orientation vector at each octave
-  des.getOrientationGlobal(1,init_sample);
-  des.getOrientationGlobal(2,init_sample);
-  des.getOrientationGlobal(4,init_sample);
-  des.getOrientationGlobal(8,init_sample);
-  des.getOrientationGlobal(16,init_sample);
+  if (global)
+    des.getDescriptorsGlobal(upright);
+  else
+    des.getDescriptors(upright);
 
   // Deallocate the integral image
   cvReleaseImage(&int_img);
