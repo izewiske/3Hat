@@ -118,5 +118,13 @@ bool contourIsDifficult(Contour contour,Image image){
 	return isDifficult;
 }
 
+cv::Mat locsToBool(vector<PixelLoc> contourPixels, cv::Mat img){
+	cv::Mat boolMat(img.rows,img.cols,img.type());
+	for (int i=0; i<boolMat.cols; i++){
+		for (int j=0; j<boolMat.rows; j++){
+			//if PixelLoc(i,j) in contourPixels, 1, else 0
+		}
+	}
+}
 
 #endif //__OPENCV_UTLITY_FUNCTIONS__
