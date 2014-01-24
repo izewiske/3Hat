@@ -19,12 +19,6 @@
 #endif
 
 
-//#include "../src/UtilityFunctions.h"
-
-
-using namespace std;
-
-
 cv::Rect defineROI(std::vector<PixelLoc> contourPixels){
 	std::vector<cv::Point2f> contour;
 	//TODO: include boundary margins on region of interest
@@ -67,8 +61,8 @@ int main( int argc, char** argv ) {
 
 		if( argc != 3) {
 			// scottt100 1149L
-		 cout <<" Usage: tileID image" << endl;
-		 return -1;
+		 	std::cout <<" Usage: tileID image" << std::endl;
+		 	return -1;
 		}
 
 		string tileID = argv[1];
@@ -79,18 +73,19 @@ int main( int argc, char** argv ) {
 		image = convertImageToMatrix(im);
 
 		if(! image.data ) {
-				cout <<	"Could not open or find the image\n";
+				std::cout <<	"Could not open or find the image\n";
 				return -1;
 		}
 		std::vector<PixelLoc> pixels = getContour(tileID,imageID);
-		std::cerr<< "Number of pixels: "  << pixels.size() << endl;
+		std::cerr<< "Number of pixels: "  << pixels.size() << std::endl;
 
 
 
 		cv::Mat contour = sliceContour(pixels,image);
-		cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );
-		cv::imshow( "Display window", contour );
-		cv::waitKey(0);
+		std::cout << "Contour = "<< std::endl << " "  << contour << std::endl << std::endl;
+		//cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );
+		//cv::imshow( "Display window", contour );
+		//cv::waitKey(0);
 		return 0;
 }
 

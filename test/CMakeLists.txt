@@ -1,7 +1,7 @@
 include_directories(../src)
 
 
-add_executable(TestOnContours TestOnContours.cpp  )# eriolObjs.o)
+add_executable(TestOnContours TestOnContours.cpp  eriolObjs.o)
 
 # temporarily commented out while we work on getting contours from eriol
 #
