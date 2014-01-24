@@ -139,19 +139,26 @@ int mainStaticMatchStrengths()
   cvWaitKey(0);
 
   // NOW DO IT AGAIN!
-  mimg1=cv::imread("OpenSURF/imgs/img1.jpg", CV_LOAD_IMAGE_COLOR);
-  mimg2=cv::imread("OpenSURF/imgs/img2.jpg", CV_LOAD_IMAGE_COLOR);
+  cv::Mat mimg3, mimg4;
+  mimg3=cv::imread("OpenSURF/imgs/img1.jpg", CV_LOAD_IMAGE_COLOR);
+  mimg4=cv::imread("OpenSURF/imgs/img2.jpg", CV_LOAD_IMAGE_COLOR);
 
-  iimg1=mimg1;
-  iimg2=mimg2;
+  IplImage iimg3, iimg4;
+  iimg3=mimg3;
+  iimg4=mimg4;
 
-  img1 = &iimg1;
-  img2 = &iimg2;
+  IplImage *img3, *img4;
+  img3 = &iimg3;
+  img4 = &iimg4;
 
-  surfDetDes(img1,ipts1,false,4,4,2,0.0001f,!matchGlobalOrientations);
-  surfDetDes(img2,ipts2,false,4,4,2,0.0001f,!matchGlobalOrientations);
+  IpVec ipts3, ipts4;
+  surfDetDes(img3,ipts3,false,4,4,2,0.0001f,!matchGlobalOrientations);
+  surfDetDes(img4,ipts4,false,4,4,2,0.0001f,!matchGlobalOrientations);
 
-  getMatchesSymmetric(ipts1,ipts2,matches);
+  matches.clear();
+  getMatchesSymmetric(ipts3,ipts4,matches);
+
+  IpVec mpts3, mpts4;
 
   for (unsigned int i = 0; i < matches.size(); ++i)
   {
@@ -162,22 +169,22 @@ int mainStaticMatchStrengths()
     
     //drawPoint(img1,matches[i].first.first,clr);
     //drawPoint(img2,matches[i].first.second,clr),
-    mpts1.push_back(matches[i].first.first);
-    mpts2.push_back(matches[i].first.second);
+    mpts3.push_back(matches[i].first.first);
+    mpts4.push_back(matches[i].first.second);
   
-    cvLine(img1,cvPoint(matches[i].first.first.x,matches[i].first.first.y),cvPoint(matches[i].first.second.x+w,matches[i].first.second.y), clr,1);
-    cvLine(img2,cvPoint(matches[i].first.first.x-w,matches[i].first.first.y),cvPoint(matches[i].first.second.x,matches[i].first.second.y), clr,1);
+    cvLine(img3,cvPoint(matches[i].first.first.x,matches[i].first.first.y),cvPoint(matches[i].first.second.x+w,matches[i].first.second.y), clr,1);
+    cvLine(img4,cvPoint(matches[i].first.first.x-w,matches[i].first.first.y),cvPoint(matches[i].first.second.x,matches[i].first.second.y), clr,1);
   }
 
-  drawIpoints(img1,mpts1);
-  drawIpoints(img2,mpts2);
+  drawIpoints(img3,mpts3);
+  drawIpoints(img4,mpts4);
 
   std::cout<< "Matches: " << matches.size() << std::endl;
 
-  cvNamedWindow("1", CV_WINDOW_AUTOSIZE );
-  cvNamedWindow("2", CV_WINDOW_AUTOSIZE );
-  cvShowImage("1", img1);
-  cvShowImage("2",img2);
+  cvNamedWindow("3", CV_WINDOW_AUTOSIZE );
+  cvNamedWindow("4", CV_WINDOW_AUTOSIZE );
+  cvShowImage("3", img3);
+  cvShowImage("4",img4);
   cvWaitKey(0);
 
 

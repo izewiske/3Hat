@@ -4,6 +4,7 @@
 *.pyc
 *.swp
 *.exe
+*.stackdump
 .DS_STORE
 CMakeFiles
 CMakeFiles/*
