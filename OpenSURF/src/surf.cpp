@@ -301,12 +301,23 @@ void Surf::getOrientationGlobal(const int init_sample)
 {
   // setup
   Ipoint *ipt = &ipts[index];
-  int scale = fRound(ipt->scale);
+  //int scale = fRound(ipt->scale);
+  //std::cout<<scale<<std::endl;
+  
+  if (oris.count(-1)){
+    ipt->orientation = oris[-1];
+    return;
+  }
+
+  float sumScaleOris = 0.f;
+  const int NUMSCALES = 10; 
+
+  for (int scale = 2; scale < 2+NUMSCALES; scale++){
+
+  
 
   // have we already calculated the global orientation at this scale?
-  if (oris.count(scale))
-    ipt->orientation = oris[scale];
-  else {
+  //else {
     // round scale to integer
     const int s = fRound(scale);
     // determine number of points in the image at this scale
@@ -393,9 +404,13 @@ void Surf::getOrientationGlobal(const int init_sample)
 //    orientation = getAngle(totX,totY);
 
     oris[scale] = orientation;
-  
-    ipt->orientation = orientation;
+
+    //ipt->orientation = orientation;
+    
+    sumScaleOris += orientation;
   } //calc new orientation
+  oris[-1] = sumScaleOris/(2+NUMSCALES);
+  ipt->orientation = oris[-1];
 }
 
 //-------------------------------------------------------
@@ -410,6 +425,7 @@ void Surf::getDescriptorGlobal(bool bUpright)
   float scale, *desc, dx, dy, mdx, mdy, co, si;
   float gauss_s1 = 0.f, gauss_s2 = 0.f;
   float rx = 0.f, ry = 0.f, rrx = 0.f, rry = 0.f, len = 0.f;
+  float wrrx = 0.f, wrry = 0.f;
   float cx = -0.5f, cy = 0.f; //Subregion centers for the 4x4 gaussian weighting
 
   Ipoint *ipt = &ipts[index];
@@ -462,7 +478,7 @@ void Surf::getDescriptorGlobal(bool bUpright)
           sample_y = fRound(y + ( l*scale*co + k*scale*si));
 
           //Get the gaussian weighted x and y responses
-          gauss_s1 = gaussian(xs-sample_x,ys-sample_y,2.5f*scale);
+          gauss_s1 = gaussian(xs-sample_x, ys-sample_y, 2.5f*scale);
           rx = haarX(sample_y, sample_x, 2*fRound(scale));
           ry = haarY(sample_y, sample_x, 2*fRound(scale));
 
@@ -470,11 +486,22 @@ void Surf::getDescriptorGlobal(bool bUpright)
           rrx = gauss_s1*(-rx*si + ry*co);
           rry = gauss_s1*(rx*co + ry*si);
 
+	  //Get the mask weighted x and y responses
+	  float wm = weightMask(sample_x-x,sample_y-y,ipt->orientation);
+	  //std::cout<<" Weight mask: "<<wm<<std::endl;
+	  wrrx = wm*rrx;
+	  wrry = wm*rry;
+
           dx += rrx;
           dy += rry;
           mdx += fabs(rrx);
           mdy += fabs(rry);
-
+	  /*
+          dx += wrrx;
+          dy += wrry;
+          mdx += fabs(wrrx);
+          mdy += fabs(wrry);
+	  */
         }
       }
 
@@ -498,6 +525,36 @@ void Surf::getDescriptorGlobal(bool bUpright)
   for(int i = 0; i < 64; ++i)
     desc[i] /= len;
 
+}
+
+//-------------------------------------------------------
+
+//! Calculate the weight mask for the given offsets and orientation
+float Surf::weightMask(int x, int y, float ori){
+  float offsetAngle = getAngle((float) x,(float) y);
+  float radDiff = ori-offsetAngle;
+  //if the angle is within pi/8 of the orientation, first weight mask bin
+  radDiff+=(0.125*pi);
+  while (radDiff > 2*pi)
+    radDiff-=2*pi;
+  while (radDiff < 0)
+    radDiff+=2*pi;
+  if (radDiff<0.25*pi)      //bin 1
+    return 1.0;
+  else if (radDiff<0.5*pi)  //bin 2
+    return 2.0;
+  else if (radDiff<0.75*pi) //bin 3
+    return 4.0;
+  else if (radDiff<pi)      //bin 4
+    return 8.0;
+  else if (radDiff<1.25*pi) //bin 5
+    return 16.0;
+  else if (radDiff<1.5*pi)  //bin 6
+    return 32.0;
+  else if (radDiff<1.75*pi) //bin 7
+    return 64.0;
+  else                      //bin 8
+    return 128.0;
 }
 
 //-------------------------------------------------------

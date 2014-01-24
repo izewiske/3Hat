@@ -56,6 +56,9 @@ class Surf {
     //! Get the angle from the +ve x-axis of the vector given by [X Y]
     float getAngle(float X, float Y);
 
+    //! Calculate the weight mask for the given offsets and orientation
+    float weightMask(int x, int y, float ori);
+
 
     //---------------- Private Variables -----------------//
 
