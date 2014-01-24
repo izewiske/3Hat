@@ -43,6 +43,7 @@ class Surf {
 
     //! Get the descriptor. See Agrawal ECCV 08
     void getDescriptor(bool bUpright = false);
+    void getDescriptorGlobal(bool bUpright = false);
 
     //! Calculate the value of the 2d gaussian at x,y
     inline float gaussian(int x, int y, float sig);

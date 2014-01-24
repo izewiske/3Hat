@@ -157,6 +157,107 @@ void Surf::getOrientation()
 
 //-------------------------------------------------------
 
+//! Get the modified descriptor. See Agrawal ECCV 08
+//! Modified descriptor contributed by Pablo Fernandez
+void Surf::getDescriptor(bool bUpright)
+{
+  int y, x, sample_x, sample_y, count=0;
+  int i = 0, ix = 0, j = 0, jx = 0, xs = 0, ys = 0;
+  float scale, *desc, dx, dy, mdx, mdy, co, si;
+  float gauss_s1 = 0.f, gauss_s2 = 0.f;
+  float rx = 0.f, ry = 0.f, rrx = 0.f, rry = 0.f, len = 0.f;
+  float cx = -0.5f, cy = 0.f; //Subregion centers for the 4x4 gaussian weighting
+
+  Ipoint *ipt = &ipts[index];
+  scale = ipt->scale;
+  x = fRound(ipt->x);
+  y = fRound(ipt->y);  
+  desc = ipt->descriptor;
+
+  if (bUpright)
+  {
+    co = 1;
+    si = 0;
+  }
+  else
+  {
+    co = cos(ipt->orientation);
+    si = sin(ipt->orientation);
+  }
+
+  i = -8;
+
+  //Calculate descriptor for this interest point
+  while(i < 12)
+  {
+    j = -8;
+    i = i-4;
+
+    cx += 1.f;
+    cy = -0.5f;
+
+    while(j < 12) 
+    {
+      dx=dy=mdx=mdy=0.f;
+      cy += 1.f;
+
+      j = j - 4;
+
+      ix = i + 5;
+      jx = j + 5;
+
+      xs = fRound(x + ( -jx*scale*si + ix*scale*co));
+      ys = fRound(y + ( jx*scale*co + ix*scale*si));
+
+      for (int k = i; k < i + 9; ++k) 
+      {
+        for (int l = j; l < j + 9; ++l) 
+        {
+          //Get coords of sample point on the rotated axis
+          sample_x = fRound(x + (-l*scale*si + k*scale*co));
+          sample_y = fRound(y + ( l*scale*co + k*scale*si));
+
+          //Get the gaussian weighted x and y responses
+          gauss_s1 = gaussian(xs-sample_x,ys-sample_y,2.5f*scale);
+          rx = haarX(sample_y, sample_x, 2*fRound(scale));
+          ry = haarY(sample_y, sample_x, 2*fRound(scale));
+
+          //Get the gaussian weighted x and y responses on rotated axis
+          rrx = gauss_s1*(-rx*si + ry*co);
+          rry = gauss_s1*(rx*co + ry*si);
+
+          dx += rrx;
+          dy += rry;
+          mdx += fabs(rrx);
+          mdy += fabs(rry);
+
+        }
+      }
+
+      //Add the values to the descriptor vector
+      gauss_s2 = gaussian(cx-2.0f,cy-2.0f,1.5f);
+
+      desc[count++] = dx*gauss_s2;
+      desc[count++] = dy*gauss_s2;
+      desc[count++] = mdx*gauss_s2;
+      desc[count++] = mdy*gauss_s2;
+
+      len += (dx*dx + dy*dy + mdx*mdx + mdy*mdy) * gauss_s2*gauss_s2;
+
+      j += 9;
+    }
+    i += 9;
+  }
+
+  //Convert to Unit Vector
+  len = sqrt(len);
+  for(int i = 0; i < 64; ++i)
+    desc[i] /= len;
+
+}
+
+//-------------------------------------------------------
+
 //! Describe all features in the supplied vector
 void Surf::getDescriptorsGlobal(bool upright, const int init_sample)
 {
@@ -188,7 +289,7 @@ void Surf::getDescriptorsGlobal(bool upright, const int init_sample)
 
       // Assign Orientations and extract rotation invariant descriptors
       getOrientationGlobal(init_sample);
-      getDescriptor(false);
+      getDescriptorGlobal(false);
     }
   }
 }
@@ -301,7 +402,8 @@ void Surf::getOrientationGlobal(const int init_sample)
 
 //! Get the modified descriptor. See Agrawal ECCV 08
 //! Modified descriptor contributed by Pablo Fernandez
-void Surf::getDescriptor(bool bUpright)
+//! Weighed, globally-oriented descriptor
+void Surf::getDescriptorGlobal(bool bUpright)
 {
   int y, x, sample_x, sample_y, count=0;
   int i = 0, ix = 0, j = 0, jx = 0, xs = 0, ys = 0;
@@ -397,7 +499,6 @@ void Surf::getDescriptor(bool bUpright)
     desc[i] /= len;
 
 }
-
 
 //-------------------------------------------------------
 
