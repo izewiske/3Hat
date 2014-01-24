@@ -58,6 +58,10 @@ cv::Mat sliceContour(std::vector<PixelLoc> contourPixels, cv::Mat image){
 	return slice;
 }
 
+cv::Mat convertImageToMatrix(Image im){
+	cv::Mat image(im.getHeight(),im.getWidth(),CV_8UC3,(void *) im.getData());
+	return image;
+}
 
 int main( int argc, char** argv ) {
 
@@ -71,10 +75,11 @@ int main( int argc, char** argv ) {
 		string imageID = argv[2];
 
 		cv::Mat image;
-		image = cv::imread(argv[2], CV_LOAD_IMAGE_COLOR); 
+		Image im(imageID.c_str());
+		image = convertImageToMatrix(im);
 
 		if(! image.data ) {
-				cout <<	"Could not open or find the image" << std::endl ;
+				cout <<	"Could not open or find the image\n";
 				return -1;
 		}
 		std::vector<PixelLoc> pixels = getContour(tileID,imageID);
