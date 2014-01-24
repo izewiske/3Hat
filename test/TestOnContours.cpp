@@ -25,12 +25,12 @@
 using namespace std;
 
 
-cv::RotatedRect defineROI(std::vector<PixelLoc> contourPixels){
-	std::vector<cv::Point> contour;
+cv::Rect defineROI(std::vector<PixelLoc> contourPixels){
+	std::vector<cv::Point2f> contour;
 	//TODO: include boundary margins on region of interest
 	for (int j = 0; j < contourPixels.size(); ++j) {
 		// Makes a Pixel2f
-		cv::Point p(contourPixels[j].x,contourPixels[j].y);
+		cv::Point2f p(contourPixels[j].x,contourPixels[j].y);
 		//adds it to contour
 		contour.push_back(p);
 	}
@@ -45,16 +45,16 @@ cv::RotatedRect defineROI(std::vector<PixelLoc> contourPixels){
 		negative indices, due to the data points being close to the border of the containing Mat element.
 	!!!
 	*/
-	cv::RotatedRect roi = cv::fitEllipse(contour);
+	cv::Rect roi = cv::boundingRect(contour);
 	return roi;
 }
 
 // Takes input from getContour which returns a vector of vector of PixelLoc
 cv::Mat sliceContour(std::vector<PixelLoc> contourPixels, cv::Mat image){
-	cv::RotatedRect roi = defineROI(contourPixels);
-	cv::Point2f vertices[4];
-	roi.points(vertices);
-	cv::Mat_<uchar> slice(image,vertices);
+	cv::Rect roi = defineROI(contourPixels);
+	//cv::Point2f vertices[4];
+	//roi.points(vertices);
+	cv::Mat slice(image,roi);
 	return slice;
 }
 
