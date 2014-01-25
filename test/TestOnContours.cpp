@@ -44,21 +44,25 @@ cv::Rect defineROI(std::vector<PixelLoc> contourPixels){
 }
 
 // Takes input from getContour which returns a vector of vector of PixelLoc
-void sliceContour(std::vector<PixelLoc> contourPixels, cv::Mat image,cv::Mat contour){
+void sliceContour(std::vector<PixelLoc> contourPixels, cv::Mat& image,cv::Mat& contour){
 	cv::Rect roi = defineROI(contourPixels);
-	//cv::Point2f vertices[4];
-	//roi.points(vertices);
+	std::cout<<"roi: " << roi << std::endl;
 	cv::Mat slice(image,roi);
+	std::cout << slice.data << std::endl;
+	std::cout << "slice:" << slice << std::endl;
 	contour = slice;
+	std::cout << "slice:" << slice << std::endl;
 	return ;
 }
 
-void convertImageToMatrix(Image im,cv::Mat image){
+void convertImageToMatrix(Image im,cv::Mat& image){
 	cv::Mat img(im.getHeight(),im.getWidth(),CV_8UC3,(void *) im.getData());
 	image = img;
 	return ;
 }
 
+
+// couldn't get main to work with functions so I flattened it.
 int main( int argc, char** argv ) {
 
 		if( argc != 3) {
@@ -70,24 +74,30 @@ int main( int argc, char** argv ) {
 		string tileID = argv[1];
 		string imageID = argv[2];
 
-		cv::Mat image, c;
 		Image im(imageID.c_str());
-		convertImageToMatrix(im,image);
-
+		cv::Mat image(im.getHeight(),im.getWidth(),CV_8UC3,(void *) im.getData());
 		if(! image.data ) {
 				std::cout <<	"Could not open or find the image\n";
 				return -1;
 		}
 		std::vector<PixelLoc> pixels = getContour(tileID,imageID);
 		std::cerr<< "Number of pixels: "  << pixels.size() << std::endl;
+	        std::vector<cv::Point2f> contour;
+        	for (int j = 0; j < pixels.size(); ++j) {
+        	        cv::Point2f p(pixels[j].x,pixels[j].y);
+        	        contour.push_back(p);
+        	}
+
+	        cv::Rect roi = cv::boundingRect(contour);
+		cv::Mat slice(image,roi);
+		cv::Mat contourMatrix = slice.clone();
 
 
 
-		sliceContour(pixels,image,c);
-		std::cout << "Contour = "<< std::endl << " "  << c << std::endl << std::endl;
-		//cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );
-		//cv::imshow( "Display window", contour );
-		//cv::waitKey(0);
+//		std::cout << "Contour = "<< std::endl << " "  << contourMatrix << std::endl << std::endl;
+		cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );
+		cv::imshow( "Display window", contourMatrix );
+		cv::waitKey(0);
 		return 0;
 }
 
