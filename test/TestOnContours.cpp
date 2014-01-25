@@ -44,17 +44,19 @@ cv::Rect defineROI(std::vector<PixelLoc> contourPixels){
 }
 
 // Takes input from getContour which returns a vector of vector of PixelLoc
-cv::Mat sliceContour(std::vector<PixelLoc> contourPixels, cv::Mat image){
+void sliceContour(std::vector<PixelLoc> contourPixels, cv::Mat image,cv::Mat contour){
 	cv::Rect roi = defineROI(contourPixels);
 	//cv::Point2f vertices[4];
 	//roi.points(vertices);
 	cv::Mat slice(image,roi);
-	return slice;
+	contour = slice;
+	return ;
 }
 
-cv::Mat convertImageToMatrix(Image im){
-	cv::Mat image(im.getHeight(),im.getWidth(),CV_8UC3,(void *) im.getData());
-	return image;
+void convertImageToMatrix(Image im,cv::Mat image){
+	cv::Mat img(im.getHeight(),im.getWidth(),CV_8UC3,(void *) im.getData());
+	image = img;
+	return ;
 }
 
 int main( int argc, char** argv ) {
@@ -68,9 +70,9 @@ int main( int argc, char** argv ) {
 		string tileID = argv[1];
 		string imageID = argv[2];
 
-		cv::Mat image;
+		cv::Mat image, c;
 		Image im(imageID.c_str());
-		image = convertImageToMatrix(im);
+		convertImageToMatrix(im,image);
 
 		if(! image.data ) {
 				std::cout <<	"Could not open or find the image\n";
@@ -81,8 +83,8 @@ int main( int argc, char** argv ) {
 
 
 
-		cv::Mat contour = sliceContour(pixels,image);
-		std::cout << "Contour = "<< std::endl << " "  << contour << std::endl << std::endl;
+		sliceContour(pixels,image,c);
+		std::cout << "Contour = "<< std::endl << " "  << c << std::endl << std::endl;
 		//cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );
 		//cv::imshow( "Display window", contour );
 		//cv::waitKey(0);
