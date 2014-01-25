@@ -30,7 +30,8 @@ inline void surfDetDes(IplImage *img,  /* image to find Ipoints in */
                        int intervals = INTERVALS, /* number of intervals per octave */
                        int init_sample = INIT_SAMPLE, /* initial sampling step */
                        float thres = THRES, /* blob response threshold */
-		       bool global = false) /* run in global orientation mode? */
+		       bool global = false, /* run in global orientation mode? */
+		       IplImage* contour = NULL)
 {
   // Create integral-image representation of the image
   IplImage *int_img = Integral(img);
@@ -61,7 +62,8 @@ inline void surfDet(IplImage *img,  /* image to find Ipoints in */
                     int octaves = OCTAVES, /* number of octaves to calculate */
                     int intervals = INTERVALS, /* number of intervals per octave */
                     int init_sample = INIT_SAMPLE, /* initial sampling step */
-                    float thres = THRES /* blob response threshold */)
+                    float thres = THRES, /* blob response threshold */
+		    IplImage* contour = NULL)
 {
   // Create integral image representation of the image
   IplImage *int_img = Integral(img);
@@ -82,7 +84,8 @@ inline void surfDet(IplImage *img,  /* image to find Ipoints in */
 //! Library function describes interest points in vector
 inline void surfDes(IplImage *img,  /* image to find Ipoints in */
                     std::vector<Ipoint> &ipts, /* reference to vector of Ipoints */
-                    bool upright = false) /* run in rotation invariant mode? */
+                    bool upright = false, /* run in rotation invariant mode? */
+		    IplImage* contour = NULL)
 { 
   // Create integral image representation of the image
   IplImage *int_img = Integral(img);

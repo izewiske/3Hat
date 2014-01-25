@@ -19,8 +19,6 @@
 #include "responselayer.h"
 #include "fasthessian.h"
 
-
-
 using namespace std;
 
 //-------------------------------------------------------
@@ -28,11 +26,14 @@ using namespace std;
 //! Constructor without image
 FastHessian::FastHessian(std::vector<Ipoint> &ipts, 
                          const int octaves, const int intervals, const int init_sample, 
-                         const float thresh) 
+                         const float thresh, IplImage* contour) 
                          : ipts(ipts), i_width(0), i_height(0)
 {
   // Save parameter set
   saveParameters(octaves, intervals, init_sample, thresh);
+  
+  // Set the contour image
+  setConImage(contour);
 }
 
 //-------------------------------------------------------
@@ -40,7 +41,7 @@ FastHessian::FastHessian(std::vector<Ipoint> &ipts,
 //! Constructor with image
 FastHessian::FastHessian(IplImage *img, std::vector<Ipoint> &ipts, 
                          const int octaves, const int intervals, const int init_sample, 
-                         const float thresh) 
+                         const float thresh, IplImage* contour) 
                          : ipts(ipts), i_width(0), i_height(0)
 {
   // Save parameter set
@@ -48,6 +49,9 @@ FastHessian::FastHessian(IplImage *img, std::vector<Ipoint> &ipts,
 
   // Set the current image
   setIntImage(img);
+
+  // Set the contour image
+  setConImage(contour);
 }
 
 //-------------------------------------------------------
@@ -76,6 +80,14 @@ void FastHessian::saveParameters(const int octaves, const int intervals,
   this->thresh = (thresh >= 0 ? thresh : THRES);
 }
 
+//-------------------------------------------------------
+
+//! Set or re-set the integral image source
+void FastHessian::setConImage(IplImage *contour)
+{
+  // Change the source image
+  this->contour = contour;
+}
 
 //-------------------------------------------------------
 
@@ -199,8 +211,11 @@ void FastHessian::buildResponseLayer(ResponseLayer *rl)
   int b = (rl->filter - 1) / 2;             // border for this filter
   int l = rl->filter / 3;                   // lobe for this filter (filter size / 3)
   int w = rl->filter;                       // filter size
-  float inverse_area = 1.f/(w*w);           // normalisation factor
+  float inverse_area;                       // normalisation factor
   float Dxx, Dyy, Dxy;
+
+  if (contour==NULL)
+    inverse_area = 1.f/(w*w);
 
   for(int r, c, ar = 0, index = 0; ar < rl->height; ++ar) 
   {
@@ -209,6 +224,12 @@ void FastHessian::buildResponseLayer(ResponseLayer *rl)
       // get the image coordinates
       r = ar * step;
       c = ac * step; 
+
+      if (contour!=NULL){
+        if (CV_IMAGE_ELEM(contour, unsigned char, r, c))
+	  continue;
+	inverse_area = 1.f/BoxIntegral(contour, r-b, c-b, w, w);
+      }
 
       // Compute response components
       Dxx = BoxIntegral(img, r - l + 1, c - b, 2*l - 1, w)
@@ -237,62 +258,7 @@ void FastHessian::buildResponseLayer(ResponseLayer *rl)
   }
 }
 
-//-------------------------------------------------------
-
-//! Calculate DoH responses for supplied layer
-void FastHessian::buildResponseLayerInContour(ResponseLayer *rl, ContourMat* con)
-{
-  float *responses = rl->responses;         // response storage
-  unsigned char *laplacian = rl->laplacian; // laplacian sign storage
-  int step = rl->step;                      // step size for this filter
-  int b = (rl->filter - 1) / 2;             // border for this filter
-  int l = rl->filter / 3;                   // lobe for this filter (filter size / 3)
-  int w = rl->filter;                       // filter size
-  float Dxx, Dyy, Dxy, inverse_area;
-
-  for(int r, c, ar = 0, index = 0; ar < rl->height; ++ar) 
-  {
-    for(int ac = 0; ac < rl->width; ++ac, index++) 
-    {
-      // get the image coordinates
-      r = ar * step;
-      c = ac * step; 
-
-      // if the point is not in the contour, ignore it; it's value will never be used
-      // do we want to assign some dummy value that makes clear its status instead?
-      if(!con->inContour(r,c,rl))
-        continue;
-
-      // Compute area of the above box filters that is within the contour
-      inverse_area = BoxIntegral(conMap, r - b, c - b, w, w);
-
-      // Compute response components for things within the contour
-      Dxx = BoxIntegral(imgCon, r - l + 1, c - b, 2*l - 1, w)
-          - BoxIntegral(imgCon, r - l + 1, c - l / 2, 2*l - 1, l)*3;
-      Dyy = BoxIntegral(imgCon, r - b, c - l + 1, w, 2*l - 1)
-          - BoxIntegral(imgCon, r - l / 2, c - l + 1, l, 2*l - 1)*3;
-      Dxy = BoxIntegral(imgCon, r - l, c + 1, l, l)
-          + BoxIntegral(imgCon, r + 1, c - l, l, l)
-          - BoxIntegral(imgCon, r - l, c - l, l, l)
-          - BoxIntegral(imgCon, r + 1, c + 1, l, l);
-
-      // Normalise the filter responses with respect to their size
-      Dxx *= inverse_area;
-      Dyy *= inverse_area;
-      Dxy *= inverse_area;
-     
-      // Get the determinant of hessian response & laplacian sign
-      responses[index] = (Dxx * Dyy - 0.81f * Dxy * Dxy);
-      laplacian[index] = (Dxx + Dyy >= 0 ? 1 : 0);
-
-#ifdef RL_DEBUG
-      // create list of the image coords for each response
-      rl->coords.push_back(std::make_pair<int,int>(r,c));
-#endif
-    }
-  }
-}
-  
+ 
 //-------------------------------------------------------
 
 //! Non Maximal Suppression function
@@ -308,63 +274,42 @@ int FastHessian::isExtremum(int r, int c, ResponseLayer *t, ResponseLayer *m, Re
   if (candidate < thresh) 
     return 0; 
 
-  for (int rr = -1; rr <=1; ++rr)
-  {
-    for (int cc = -1; cc <=1; ++cc)
+  if (contour==NULL){
+    for (int rr = -1; rr <=1; ++rr)
     {
-      // if any response in 3x3x3 is greater candidate not maximum
-      if (
-        t->getResponse(r+rr, c+cc) >= candidate ||
-        ((rr != 0 || cc != 0) && m->getResponse(r+rr, c+cc, t) >= candidate) ||
-        b->getResponse(r+rr, c+cc, t) >= candidate
-        ) 
-        return 0;
+      for (int cc = -1; cc <=1; ++cc)
+      {
+        // if any response in 3x3x3 is greater candidate not maximum
+        if (
+          t->getResponse(r+rr, c+cc) >= candidate ||
+          ((rr != 0 || cc != 0) && m->getResponse(r+rr, c+cc, t) >= candidate) ||
+          b->getResponse(r+rr, c+cc, t) >= candidate
+          ) 
+          return 0;
+      }
+    }
+  }
+  else {
+    for (int rr = -1; rr <=1; ++rr)
+    {
+      for (int cc = -1; cc <=1; ++cc)
+      {
+        // are we in the contour?
+        if (CV_IMAGE_ELEM(contour, unsigned char, (r+rr)*i_width/t->width, (c+cc)*i_width/t->width))
+          // if any response in 3x3x3 is greater candidate not maximum
+          if (
+            t->getResponse(r+rr, c+cc) >= candidate ||
+            ((rr != 0 || cc != 0) && m->getResponse(r+rr, c+cc, t) >= candidate) ||
+            b->getResponse(r+rr, c+cc, t) >= candidate
+            ) 
+            return 0;
+      }
     }
   }
 
   return 1;
 }
   
-//-------------------------------------------------------
-
-//! Non Maximal Suppression function
-int FastHessian::isExtremumInContour(int r, int c, ResponseLayer *t, ResponseLayer *m, ResponseLayer *b, ContourMat* con)
-{
-  // bounds check
-  int layerBorder = (t->filter + 1) / (2 * t->step);
-  if (r <= layerBorder || r >= t->height - layerBorder || c <= layerBorder || c >= t->width - layerBorder)
-    return 0;
-
-  // check that the candidate point is inside the contour
-  if (!con->inContour(r, c, t))
-    return 0;
-
-  // check the candidate point in the middle layer is above thresh 
-  float candidate = m->getResponse(r, c, t);
-  if (candidate < thresh) 
-    return 0; 
-
-  for (int rr = -1; rr <=1; ++rr)
-  {
-    for (int cc = -1; cc <=1; ++cc)
-    {
-      // if any response in 3x3x3 is greater candidate and within contour, not maximum
-      // r+rr is the row IN THE TOP RESPONSE LAYER (sparsest layer)
-      // top response layer has smallest width, largest step and filter
-      if (con->inContour(r+rr,c+cc,t) &&
-          (
-           t->getResponse(r+rr, c+cc) >= candidate ||
-           ((rr != 0 || cc != 0) && m->getResponse(r+rr, c+cc, t) >= candidate) ||
-           b->getResponse(r+rr, c+cc, t) >= candidate
-          )
-	 )
-        return 0;
-    }
-  }
-
-  return 1;
-}
-
 //-------------------------------------------------------
 
 //! Interpolate scale-space extrema to subpixel accuracy to form an image feature.   

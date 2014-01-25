@@ -118,7 +118,7 @@ bool contourIsDifficult(Contour contour,Image image){
 	return isDifficult;
 }
 
-//generate a boolean mat for an image 
+//! Generate a boolean mat for an image 
 cv::Mat locsToBool(vector<PixelLoc> contourPixels, cv::Mat img){
 	cv::Mat boolMat(img.rows,img.cols,CV_8UC1,0);
 	
@@ -141,5 +141,6 @@ cv::Mat locsToBool(vector<PixelLoc> contourPixels, cv::Mat img){
 
 	return boolMat;
 }
+
 
 #endif //__OPENCV_UTLITY_FUNCTIONS__

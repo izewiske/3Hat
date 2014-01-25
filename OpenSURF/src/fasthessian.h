@@ -34,7 +34,8 @@ class FastHessian {
                 const int octaves = OCTAVES, 
                 const int intervals = INTERVALS, 
                 const int init_sample = INIT_SAMPLE, 
-                const float thres = THRES);
+                const float thres = THRES,
+		IplImage* contour = NULL);
 
     //! Constructor with image
     FastHessian(IplImage *img, 
@@ -42,7 +43,8 @@ class FastHessian {
                 const int octaves = OCTAVES, 
                 const int intervals = INTERVALS, 
                 const int init_sample = INIT_SAMPLE, 
-                const float thres = THRES);
+                const float thres = THRES,
+		IplImage* contour = NULL);
 
     //! Destructor
     ~FastHessian();
@@ -56,9 +58,12 @@ class FastHessian {
     //! Set or re-set the integral image source
     void setIntImage(IplImage *img);
 
+    //! Set or re-set the integral image source
+    void setConImage(IplImage *contour);
+
     //! Find the image features and write into vector of features
     void getIpoints();
-    
+
   private:
 
     //---------------- Private Functions -----------------//
@@ -68,7 +73,6 @@ class FastHessian {
 
     //! Calculate DoH responses for supplied layer
     void buildResponseLayer(ResponseLayer *r);
-    void buildResponseLayerInContour(ResponseLayer *r, ContourMat* con);
 
     //! 3x3x3 Extrema test
     int isExtremum(int r, int c, ResponseLayer *t, ResponseLayer *m, ResponseLayer *b);    
@@ -89,14 +93,8 @@ class FastHessian {
     //---------------- Private Variables -----------------//
 
     //! Pointer to the integral Image, and its attributes 
-    IplImage *img;
+    IplImage *img, *contour;
     int i_width, i_height;
-
-    //! Pointer to the integral Image of the contour only (zeroes outside contour)
-    IplImage *imgCon;
-
-    //! Pointer to the integral Image of the contour's area (integral image of boolean image)
-    IplImage *conMap;
 
     //! Reference to vector of features passed from outside 
     std::vector<Ipoint> &ipts;
