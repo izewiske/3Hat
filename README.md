@@ -1,4 +1,4 @@
 3Hat
 ====
 
-ATP group project
+ATP group project -- corners/feature matching.
