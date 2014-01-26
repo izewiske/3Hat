@@ -1,2 +1,3 @@
 file(GLOB_RECURSE OCV-CMSource *.cpp)
-add_library(OCV-CM ${OCV-CMSource} )
+# temporarily commented out for eriol contour work
+#add_library(OCV-CM ${OCV-CMSource} )
