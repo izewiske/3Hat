@@ -3,6 +3,9 @@
 //#include "ContourMatcherExceptions.h"
 
 #include <string>
+#include <iostream>
+
+#include "surflib.h"
 #include "eriolHeader.h"
 
 #include <opencv2/opencv.hpp>
@@ -61,43 +64,166 @@ void convertImageToMatrix(Image im,cv::Mat& image){
 	return ;
 }
 
+//-------------------------------------------------------
+
+int matchStrengths(cv::Mat mimg1, cv::Mat mimg2)
+{
+  bool matchGlobalOrientations = true;
+
+  // Make images as Mats; convert to IplImage for OpenSURF library actions
+
+  IplImage iimg1, iimg2;
+  iimg1=mimg1;
+  iimg2=mimg2;
+
+  IplImage *img1, *img2;
+  img1 = &iimg1;
+  img2 = &iimg2;
+
+  IpVec ipts1, ipts2;
+  surfDetDes(img1,ipts1,false,4,4,2,0.0001f,matchGlobalOrientations);
+  surfDetDes(img2,ipts2,false,4,4,2,0.0001f,matchGlobalOrientations);
+
+  MatchVec matches;
+  getMatchesSymmetric(ipts1,ipts2,matches);
+
+  IpVec mpts1, mpts2;
+
+  const int & w = img1->width;
+
+  for (unsigned int i = 0; i < matches.size(); ++i)
+  {
+    float strengthOverThreshold = 1 - matches[i].second; // /MATCH_THRESHOLD;
+    strengthOverThreshold*=255;
+    CvScalar clr = cvScalar(strengthOverThreshold,strengthOverThreshold,strengthOverThreshold);
+    clr = cvScalar(255,255,255);
+    
+    //drawPoint(img1,matches[i].first.first,clr);
+    //drawPoint(img2,matches[i].first.second,clr),
+    mpts1.push_back(matches[i].first.first);
+    mpts2.push_back(matches[i].first.second);
+  
+    cvLine(img1,cvPoint(matches[i].first.first.x,matches[i].first.first.y),cvPoint(matches[i].first.second.x+w,matches[i].first.second.y), clr,1);
+    cvLine(img2,cvPoint(matches[i].first.first.x-w,matches[i].first.first.y),cvPoint(matches[i].first.second.x,matches[i].first.second.y), clr,1);
+  }
+
+  drawIpoints(img1,mpts1);
+  drawIpoints(img2,mpts2);
+
+  std::cout<< "Matches: " << matches.size() << std::endl;
+
+  cvNamedWindow("1", CV_WINDOW_AUTOSIZE );
+  cvNamedWindow("2", CV_WINDOW_AUTOSIZE );
+  cvShowImage("1", img1);
+  cvShowImage("2",img2);
+  cvWaitKey(0);
+
+  // NOW DO IT AGAIN!
+  cv::Mat mimg3, mimg4;
+  mimg3=cv::imread("OpenSURF/imgs/img1.jpg", CV_LOAD_IMAGE_COLOR);
+  mimg4=cv::imread("OpenSURF/imgs/img2.jpg", CV_LOAD_IMAGE_COLOR);
+
+  IplImage iimg3, iimg4;
+  iimg3=mimg3;
+  iimg4=mimg4;
+
+  IplImage *img3, *img4;
+  img3 = &iimg3;
+  img4 = &iimg4;
+
+  IpVec ipts3, ipts4;
+  surfDetDes(img3,ipts3,false,4,4,2,0.0001f,!matchGlobalOrientations);
+  surfDetDes(img4,ipts4,false,4,4,2,0.0001f,!matchGlobalOrientations);
+
+  matches.clear();
+  getMatchesSymmetric(ipts3,ipts4,matches);
+
+  IpVec mpts3, mpts4;
+
+  for (unsigned int i = 0; i < matches.size(); ++i)
+  {
+    float strengthOverThreshold = 1 - matches[i].second; // /MATCH_THRESHOLD;
+    strengthOverThreshold*=255;
+    CvScalar clr = cvScalar(strengthOverThreshold,strengthOverThreshold,strengthOverThreshold);
+    clr = cvScalar(255,255,255);
+    
+    //drawPoint(img1,matches[i].first.first,clr);
+    //drawPoint(img2,matches[i].first.second,clr),
+    mpts3.push_back(matches[i].first.first);
+    mpts4.push_back(matches[i].first.second);
+  
+    cvLine(img3,cvPoint(matches[i].first.first.x,matches[i].first.first.y),cvPoint(matches[i].first.second.x+w,matches[i].first.second.y), clr,1);
+    cvLine(img4,cvPoint(matches[i].first.first.x-w,matches[i].first.first.y),cvPoint(matches[i].first.second.x,matches[i].first.second.y), clr,1);
+  }
+
+  drawIpoints(img3,mpts3);
+  drawIpoints(img4,mpts4);
+
+  std::cout<< "Matches: " << matches.size() << std::endl;
+
+  cvNamedWindow("3", CV_WINDOW_AUTOSIZE );
+  cvNamedWindow("4", CV_WINDOW_AUTOSIZE );
+  cvShowImage("3", img3);
+  cvShowImage("4",img4);
+  cvWaitKey(0);
+
+  return 0;
+}
+
+//-------------------------------------------------------
 
 // couldn't get main to work with functions so I flattened it.
 int main( int argc, char** argv ) {
 
 		if( argc != 3) {
 			// scottt100 1149L
-		 	std::cout <<" Usage: tileID image" << std::endl;
+		 	std::cout <<" Usage: tileID image1 image2" << std::endl;
 		 	return -1;
 		}
 
 		string tileID = argv[1];
-		string imageID = argv[2];
+		string imageID1 = argv[2];
+		string imageID2 = argv[3];
 
-		Image im(imageID.c_str());
-		cv::Mat image(im.getHeight(),im.getWidth(),CV_8UC3,(void *) im.getData());
-		if(! image.data ) {
-				std::cout <<	"Could not open or find the image\n";
+		Image im1(imageID1.c_str());
+		cv::Mat image1(im1.getHeight(),im1.getWidth(),CV_8UC3,(void *) im1.getData());
+		if(! image1.data ) {
+				std::cout <<	"Could not open or find the image (1)\n";
 				return -1;
 		}
-		std::vector<PixelLoc> pixels = getContour(tileID,imageID);
-		std::cerr<< "Number of pixels: "  << pixels.size() << std::endl;
-	        std::vector<cv::Point2f> contour;
-        	for (int j = 0; j < pixels.size(); ++j) {
-        	        cv::Point2f p(pixels[j].x,pixels[j].y);
-        	        contour.push_back(p);
+		Image im2(imageID2.c_str());
+		cv::Mat image2(im2.getHeight(),im2.getWidth(),CV_8UC3,(void *) im2.getData());
+		if(! image2.data ) {
+				std::cout <<	"Could not open or find the image (2)\n";
+				return -1;
+		}
+		
+		std::vector<PixelLoc> pixels1 = getContour(tileID,imageID1);
+		std::cerr<< "Number of pixels (1): "  << pixels1.size() << std::endl;
+	        std::vector<cv::Point2f> contour1;
+        	for (int j = 0; j < pixels1.size(); ++j) {
+        	        cv::Point2f p1(pixels1[j].x,pixels1[j].y);
+        	        contour1.push_back(p1);
+        	}
+		std::vector<PixelLoc> pixels2 = getContour(tileID,imageID2);
+		std::cerr<< "Number of pixels (2): "  << pixels2.size() << std::endl;
+	        std::vector<cv::Point2f> contour2;
+        	for (int j = 0; j < pixels2.size(); ++j) {
+        	        cv::Point2f p2(pixels2[j].x,pixels2[j].y);
+        	        contour2.push_back(p2);
         	}
 
-	        cv::Rect roi = cv::boundingRect(contour);
-		cv::Mat slice(image,roi);
-		cv::Mat contourMatrix = slice.clone();
+	        cv::Rect roi1 = cv::boundingRect(contour1);
+		cv::Mat slice1(image1,roi1);
+		cv::Mat contourMatrix1 = slice1.clone();
 
+	        cv::Rect roi2 = cv::boundingRect(contour2);
+		cv::Mat slice2(image2,roi2);
+		cv::Mat contourMatrix2 = slice2.clone();
 
+		//detect and match features using (modified) OpenSURF
+		matchStrengths(contourMatrix1, contourMatrix2);
 
-//		std::cout << "Contour = "<< std::endl << " "  << contourMatrix << std::endl << std::endl;
-		cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );
-		cv::imshow( "Display window", contourMatrix );
-		cv::waitKey(0);
 		return 0;
 }
 
