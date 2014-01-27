@@ -104,8 +104,11 @@ int matchStrengths(cv::Mat mimg1, cv::Mat mimg2, cv::Mat bools1, cv::Mat bools2)
   b2 = &bi2;
 
   IpVec ipts1, ipts2;
-  surfDetDes(img1,ipts1,false,4,4,2,0.0001f,matchGlobalOrientations);
-  surfDetDes(img2,ipts2,false,4,4,2,0.0001f,matchGlobalOrientations);
+  surfDetDes(img1,ipts1,false,4,4,2,0.0001f,matchGlobalOrientations,b1);
+  surfDetDes(img2,ipts2,false,4,4,2,0.0001f,matchGlobalOrientations,b2);
+
+  drawIpoints(img1, ipts1);
+  drawIpoints(img2, ipts2);
 
   MatchVec matches;
   getMatchesSymmetric(ipts1,ipts2,matches);
@@ -152,6 +155,9 @@ int matchStrengths(cv::Mat mimg1, cv::Mat mimg2, cv::Mat bools1, cv::Mat bools2)
   IpVec ipts3, ipts4;
   surfDetDes(img3,ipts3,false,4,4,2,0.0001f,!matchGlobalOrientations,b1);
   surfDetDes(img4,ipts4,false,4,4,2,0.0001f,!matchGlobalOrientations,b2);
+
+  drawIpoints(img3,ipts3);
+  drawIpoints(img4,ipts4);
 
   matches.clear();
   getMatchesSymmetric(ipts3,ipts4,matches);
@@ -234,20 +240,20 @@ int main( int argc, char** argv ) {
 		cv::Mat slice1(image1,roi1);
 		cv::Mat contourMatrix1 = slice1.clone();
 		cv::Mat bools1 = locsToBool(pixels1,image1);
-		cv::Mat contourOnly1 = image1.mul(bools1);
-		cv::Mat sliceC1(contourOnly1,roi1);
-		cv::Mat contourOnlyMatrix1 = sliceC1.clone();
+		cv::Mat sliceB1(bools1,roi1);
+		cv::Mat contourBools1 = sliceB1.clone();
+		cv::Mat contourOnly1 = contourMatrix1.mul(contourBools1);
 
 	        cv::Rect roi2 = cv::boundingRect(contour2);
 		cv::Mat slice2(image2,roi2);
 		cv::Mat contourMatrix2 = slice2.clone();
 		cv::Mat bools2 = locsToBool(pixels2,image2);
-		cv::Mat contourOnly2 = image2.mul(bools2);
-		cv::Mat sliceC2(contourOnly2,roi2);
-		cv::Mat contourOnlyMatrix2 = sliceC2.clone();
+		cv::Mat sliceB2(bools2,roi2);
+		cv::Mat contourBools2 = sliceB2.clone();
+		cv::Mat contourOnly2 = contourMatrix2.mul(contourBools2);
 
 		//detect and match features using (modified) OpenSURF
-		matchStrengths(contourOnlyMatrix1, contourOnlyMatrix2, bools1, bools2);
+		matchStrengths(contourOnly1, contourOnly2, contourBools1, contourBools2);
 
 		return 0;
 }
