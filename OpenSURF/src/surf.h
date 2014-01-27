@@ -29,7 +29,7 @@ class Surf {
 
     //! Describe all features in the supplied vector
     void getDescriptors(bool bUpright = false, IplImage* int_con=NULL);
-    void getDescriptorsGlobal(bool bUpright = false, const int init_sample=INIT_SAMPLE, IplImage* int_con=NULL);
+    void getDescriptorsGlobal(bool bUpright = false, IplImage* int_con=NULL, const int init_sample=INIT_SAMPLE);
 
   private:
     
@@ -39,7 +39,7 @@ class Surf {
     void getOrientation(IplImage* int_con=NULL);
     
     //! Determine global orientation of the image at the given scale
-    void getOrientationGlobal(const int init_sample=INIT_SAMPLE, IplImage* int_con=NULL);
+    void getOrientationGlobal(IplImage* int_con=NULL, const int init_sample=INIT_SAMPLE);
 
     //! Get the descriptor. See Agrawal ECCV 08
     void getDescriptor(bool bUpright = false, IplImage* int_con=NULL);

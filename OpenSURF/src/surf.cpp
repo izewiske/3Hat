@@ -349,7 +349,7 @@ void Surf::getDescriptor(bool bUpright, IplImage* int_con)
 //-------------------------------------------------------
 
 //! Describe all features in the supplied vector
-void Surf::getDescriptorsGlobal(bool upright, const int init_sample, IplImage* int_con)
+void Surf::getDescriptorsGlobal(bool upright, IplImage* int_con, const int init_sample)
 {
   // Check there are Ipoints to be described
   if (!ipts.size()) return;
@@ -378,7 +378,7 @@ void Surf::getDescriptorsGlobal(bool upright, const int init_sample, IplImage* i
       index = i;
 
       // Assign Orientations and extract rotation invariant descriptors
-      getOrientationGlobal(init_sample, int_con);
+      getOrientationGlobal(int_con, init_sample);
       getDescriptorGlobal(false, int_con);
     }
   }
@@ -387,7 +387,7 @@ void Surf::getDescriptorsGlobal(bool upright, const int init_sample, IplImage* i
 //-------------------------------------------------------
 
 //! Determine the global orientation of the image at the given scale
-void Surf::getOrientationGlobal(const int init_sample, IplImage* int_con)
+void Surf::getOrientationGlobal(IplImage* int_con, const int init_sample)
 {
   // setup
   Ipoint *ipt = &ipts[index];

@@ -241,7 +241,7 @@ void FastHessian::buildResponseLayer(ResponseLayer *rl)
       c = ac * step; 
 
       if (contour!=NULL){
-        if (CV_IMAGE_ELEM(contour, Vec3b, r, c))
+        if (CV_IMAGE_ELEM(contour, cv::Vec3b, r, c)==cv::Vec3b(0,0,0))
 	  continue;
 	inverse_area = 1.f/BoxIntegral(int_con, r-b, c-b, w, w);
       }
@@ -310,7 +310,7 @@ int FastHessian::isExtremum(int r, int c, ResponseLayer *t, ResponseLayer *m, Re
       for (int cc = -1; cc <=1; ++cc)
       {
         // are we in the contour?
-        if (CV_IMAGE_ELEM(contour, Vec3b, (r+rr)*i_width/t->width, (c+cc)*i_width/t->width))
+        if (CV_IMAGE_ELEM(contour, cv::Vec3b, (r+rr)*i_width/t->width, (c+cc)*i_width/t->width)==cv::Vec3b(1,1,1))
           // if any response in 3x3x3 is greater candidate not maximum
           if (
             t->getResponse(r+rr, c+cc) >= candidate ||

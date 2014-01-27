@@ -91,13 +91,17 @@ int matchStrengths(cv::Mat mimg1, cv::Mat mimg2, cv::Mat bools1, cv::Mat bools2)
   cv::Mat mc3 = mimg1.clone();
   cv::Mat mc4 = mimg2.clone();
 
-  IplImage iimg1, iimg2;
+  IplImage iimg1, iimg2, bi1, bi2;
   iimg1=mc1;
   iimg2=mc2;
+  bi1 = bools1;
+  bi2 = bools2;
 
-  IplImage *img1, *img2;
+  IplImage *img1, *img2, *b1, *b2;
   img1 = &iimg1;
   img2 = &iimg2;
+  b1 = &bi1;
+  b2 = &bi2;
 
   IpVec ipts1, ipts2;
   surfDetDes(img1,ipts1,false,4,4,2,0.0001f,matchGlobalOrientations);
@@ -146,8 +150,8 @@ int matchStrengths(cv::Mat mimg1, cv::Mat mimg2, cv::Mat bools1, cv::Mat bools2)
   img4 = &iimg4;
 
   IpVec ipts3, ipts4;
-  surfDetDes(img3,ipts3,false,4,4,2,0.0001f,!matchGlobalOrientations);
-  surfDetDes(img4,ipts4,false,4,4,2,0.0001f,!matchGlobalOrientations);
+  surfDetDes(img3,ipts3,false,4,4,2,0.0001f,!matchGlobalOrientations,b1);
+  surfDetDes(img4,ipts4,false,4,4,2,0.0001f,!matchGlobalOrientations,b2);
 
   matches.clear();
   getMatchesSymmetric(ipts3,ipts4,matches);
