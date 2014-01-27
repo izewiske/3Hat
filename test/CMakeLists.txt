@@ -11,7 +11,7 @@ target_link_libraries	(TestOnContours
 
 add_executable(testdriver SURFTests.cpp)
 target_link_libraries(testdriver
-    OCV-CM
+#    OCV-CM
     OSURF-BASE
     ${OpenCV_LIBS})
 #add_executable(ContourMatcherTests ContourMatcherTests.cpp)

@@ -68,7 +68,7 @@ void convertImageToMatrix(Image im,cv::Mat& image){
 
 int matchStrengths(cv::Mat mimg1, cv::Mat mimg2)
 {
-  bool matchGlobalOrientations = true;
+  bool matchGlobalOrientations = false;
 
   // Make images as Mats; convert to IplImage for OpenSURF library actions
 
@@ -84,6 +84,9 @@ int matchStrengths(cv::Mat mimg1, cv::Mat mimg2)
   surfDetDes(img1,ipts1,false,4,4,2,0.0001f,matchGlobalOrientations);
   surfDetDes(img2,ipts2,false,4,4,2,0.0001f,matchGlobalOrientations);
 
+  drawIpoints(img1,ipts1);
+  drawIpoints(img2,ipts2);
+
   MatchVec matches;
   getMatchesSymmetric(ipts1,ipts2,matches);
 
@@ -98,8 +101,6 @@ int matchStrengths(cv::Mat mimg1, cv::Mat mimg2)
     CvScalar clr = cvScalar(strengthOverThreshold,strengthOverThreshold,strengthOverThreshold);
     clr = cvScalar(255,255,255);
     
-    //drawPoint(img1,matches[i].first.first,clr);
-    //drawPoint(img2,matches[i].first.second,clr),
     mpts1.push_back(matches[i].first.first);
     mpts2.push_back(matches[i].first.second);
   
@@ -118,14 +119,12 @@ int matchStrengths(cv::Mat mimg1, cv::Mat mimg2)
   cvShowImage("2",img2);
   cvWaitKey(0);
 
-  // NOW DO IT AGAIN!
-  cv::Mat mimg3, mimg4;
-  mimg3=cv::imread("OpenSURF/imgs/img1.jpg", CV_LOAD_IMAGE_COLOR);
-  mimg4=cv::imread("OpenSURF/imgs/img2.jpg", CV_LOAD_IMAGE_COLOR);
+  /*
 
+  // NOW DO IT AGAIN!
   IplImage iimg3, iimg4;
-  iimg3=mimg3;
-  iimg4=mimg4;
+  iimg3=mimg1;
+  iimg4=mimg2;
 
   IplImage *img3, *img4;
   img3 = &iimg3;
@@ -147,8 +146,6 @@ int matchStrengths(cv::Mat mimg1, cv::Mat mimg2)
     CvScalar clr = cvScalar(strengthOverThreshold,strengthOverThreshold,strengthOverThreshold);
     clr = cvScalar(255,255,255);
     
-    //drawPoint(img1,matches[i].first.first,clr);
-    //drawPoint(img2,matches[i].first.second,clr),
     mpts3.push_back(matches[i].first.first);
     mpts4.push_back(matches[i].first.second);
   
@@ -167,6 +164,8 @@ int matchStrengths(cv::Mat mimg1, cv::Mat mimg2)
   cvShowImage("4",img4);
   cvWaitKey(0);
 
+  */
+
   return 0;
 }
 
@@ -175,8 +174,8 @@ int matchStrengths(cv::Mat mimg1, cv::Mat mimg2)
 // couldn't get main to work with functions so I flattened it.
 int main( int argc, char** argv ) {
 
-		if( argc != 3) {
-			// scottt100 1149L
+		if( argc != 4) {
+			// scottt100 1149L 1149R
 		 	std::cout <<" Usage: tileID image1 image2" << std::endl;
 		 	return -1;
 		}
