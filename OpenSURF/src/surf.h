@@ -28,22 +28,22 @@ class Surf {
     Surf(IplImage *img, std::vector<Ipoint> &ipts);
 
     //! Describe all features in the supplied vector
-    void getDescriptors(bool bUpright = false, IplImage* contour=NULL);
-    void getDescriptorsGlobal(bool bUpright = false, const int init_sample=INIT_SAMPLE, IplImage* contour=NULL);
+    void getDescriptors(bool bUpright = false, IplImage* int_con=NULL);
+    void getDescriptorsGlobal(bool bUpright = false, const int init_sample=INIT_SAMPLE, IplImage* int_con=NULL);
 
   private:
     
     //---------------- Private Functions -----------------//
 
     //! Assign the current Ipoint an orientation
-    void getOrientation(IplImage* contour=NULL);
+    void getOrientation(IplImage* int_con=NULL);
     
     //! Determine global orientation of the image at the given scale
-    void getOrientationGlobal(const int init_sample=INIT_SAMPLE, IplImage* contour=NULL);
+    void getOrientationGlobal(const int init_sample=INIT_SAMPLE, IplImage* int_con=NULL);
 
     //! Get the descriptor. See Agrawal ECCV 08
-    void getDescriptor(bool bUpright = false, IplImage* contour=NULL);
-    void getDescriptorGlobal(bool bUpright = false, IplImage* contour=NULL);
+    void getDescriptor(bool bUpright = false, IplImage* int_con=NULL);
+    void getDescriptorGlobal(bool bUpright = false, IplImage* int_con=NULL);
 
     //! Calculate the value of the 2d gaussian at x,y
     inline float gaussian(int x, int y, float sig);
@@ -52,8 +52,8 @@ class Surf {
     //! Calculate Haar wavelet responses in x and y directions
     inline float haarX(int row, int column, int size);
     inline float haarY(int row, int column, int size);
-    inline float haarXContour(int row, int column, int size, IplImage* contour);
-    inline float haarYContour(int row, int column, int size, IplImage* contour);
+    inline float haarXContour(int row, int column, int size, IplImage* int_con);
+    inline float haarYContour(int row, int column, int size, IplImage* int_con);
 
     //! Get the angle from the +ve x-axis of the vector given by [X Y]
     float getAngle(float X, float Y);

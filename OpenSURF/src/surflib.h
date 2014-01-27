@@ -36,8 +36,15 @@ inline void surfDetDes(IplImage *img,  /* image to find Ipoints in */
   // Create integral-image representation of the image
   IplImage *int_img = Integral(img);
   
+  // Creat integral-image representation of the contour map
+  IplImage *int_con;
+  if (contour!=NULL)
+    int_con = Integral(contour);
+  else
+    int_con = NULL;
+  
   // Create Fast Hessian Object
-  FastHessian fh(int_img, ipts, octaves, intervals, init_sample, thres);
+  FastHessian fh(int_img, ipts, octaves, intervals, init_sample, thres, contour, int_con);
  
   // Extract interest points and store in vector ipts
   fh.getIpoints();
@@ -47,12 +54,13 @@ inline void surfDetDes(IplImage *img,  /* image to find Ipoints in */
 
   // Extract the descriptors for the ipts
   if (global)
-    des.getDescriptorsGlobal(upright);
+    des.getDescriptorsGlobal(upright, int_con);
   else
-    des.getDescriptors(upright);
+    des.getDescriptors(upright, int_con);
 
-  // Deallocate the integral image
+  // Deallocate the integral images
   cvReleaseImage(&int_img);
+  cvReleaseImage(&int_con);
 }
 
 
@@ -68,14 +76,22 @@ inline void surfDet(IplImage *img,  /* image to find Ipoints in */
   // Create integral image representation of the image
   IplImage *int_img = Integral(img);
 
+ // Creat integral-image representation of the contour map
+  IplImage *int_con;
+  if (contour!=NULL)
+    int_con = Integral(contour);
+  else
+    int_con = NULL;
+
   // Create Fast Hessian Object
-  FastHessian fh(int_img, ipts, octaves, intervals, init_sample, thres);
+  FastHessian fh(int_img, ipts, octaves, intervals, init_sample, thres, contour, int_con);
 
   // Extract interest points and store in vector ipts
   fh.getIpoints();
 
-  // Deallocate the integral image
+  // Deallocate the integral images
   cvReleaseImage(&int_img);
+  cvReleaseImage(&int_con);
 }
 
 
@@ -85,19 +101,31 @@ inline void surfDet(IplImage *img,  /* image to find Ipoints in */
 inline void surfDes(IplImage *img,  /* image to find Ipoints in */
                     std::vector<Ipoint> &ipts, /* reference to vector of Ipoints */
                     bool upright = false, /* run in rotation invariant mode? */
+		    bool global = false, /* use global orientations? */
 		    IplImage* contour = NULL)
 { 
   // Create integral image representation of the image
   IplImage *int_img = Integral(img);
 
+  // Creat integral-image representation of the contour map
+  IplImage *int_con;
+  if (contour!=NULL)
+    int_con = Integral(contour);
+  else
+    int_con = NULL;
+
   // Create Surf Descriptor Object
   Surf des(int_img, ipts);
 
   // Extract the descriptors for the ipts
-  des.getDescriptors(upright);
+  if (global)
+    des.getDescriptorsGlobal(upright, int_con);
+  else
+    des.getDescriptors(upright, int_con);
   
-  // Deallocate the integral image
+  // Deallocate the integral images
   cvReleaseImage(&int_img);
+  cvReleaseImage(&int_con);
 }
 
 

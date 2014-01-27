@@ -26,14 +26,17 @@ using namespace std;
 //! Constructor without image
 FastHessian::FastHessian(std::vector<Ipoint> &ipts, 
                          const int octaves, const int intervals, const int init_sample, 
-                         const float thresh, IplImage* contour) 
+                         const float thresh, IplImage* contour, IplImage* int_con)
                          : ipts(ipts), i_width(0), i_height(0)
 {
   // Save parameter set
   saveParameters(octaves, intervals, init_sample, thresh);
   
-  // Set the contour image
-  setConImage(contour);
+  // Set the contour map 
+  setConMap(contour);
+  
+  // Set the contour integral image
+  setConImage(int_con);
 }
 
 //-------------------------------------------------------
@@ -41,7 +44,7 @@ FastHessian::FastHessian(std::vector<Ipoint> &ipts,
 //! Constructor with image
 FastHessian::FastHessian(IplImage *img, std::vector<Ipoint> &ipts, 
                          const int octaves, const int intervals, const int init_sample, 
-                         const float thresh, IplImage* contour) 
+                         const float thresh, IplImage* contour, IplImage* int_con)
                          : ipts(ipts), i_width(0), i_height(0)
 {
   // Save parameter set
@@ -50,8 +53,11 @@ FastHessian::FastHessian(IplImage *img, std::vector<Ipoint> &ipts,
   // Set the current image
   setIntImage(img);
 
-  // Set the contour image
-  setConImage(contour);
+  // Set the contour map 
+  setConMap(contour);
+  
+  // Set the contour integral image
+  setConImage(int_con);
 }
 
 //-------------------------------------------------------
@@ -82,11 +88,20 @@ void FastHessian::saveParameters(const int octaves, const int intervals,
 
 //-------------------------------------------------------
 
-//! Set or re-set the integral image source
-void FastHessian::setConImage(IplImage *contour)
+//! Set or re-set the contour map source
+void FastHessian::setConMap(IplImage *contour)
 {
   // Change the source image
   this->contour = contour;
+}
+
+//-------------------------------------------------------
+
+//! Set or re-set the contour integral image source
+void FastHessian::setConImage(IplImage *int_con)
+{
+  // Change the source image
+  this->int_con = int_con;
 }
 
 //-------------------------------------------------------
@@ -226,9 +241,9 @@ void FastHessian::buildResponseLayer(ResponseLayer *rl)
       c = ac * step; 
 
       if (contour!=NULL){
-        if (CV_IMAGE_ELEM(contour, unsigned char, r, c))
+        if (CV_IMAGE_ELEM(contour, Vec3b, r, c))
 	  continue;
-	inverse_area = 1.f/BoxIntegral(contour, r-b, c-b, w, w);
+	inverse_area = 1.f/BoxIntegral(int_con, r-b, c-b, w, w);
       }
 
       // Compute response components
@@ -295,7 +310,7 @@ int FastHessian::isExtremum(int r, int c, ResponseLayer *t, ResponseLayer *m, Re
       for (int cc = -1; cc <=1; ++cc)
       {
         // are we in the contour?
-        if (CV_IMAGE_ELEM(contour, unsigned char, (r+rr)*i_width/t->width, (c+cc)*i_width/t->width))
+        if (CV_IMAGE_ELEM(contour, Vec3b, (r+rr)*i_width/t->width, (c+cc)*i_width/t->width))
           // if any response in 3x3x3 is greater candidate not maximum
           if (
             t->getResponse(r+rr, c+cc) >= candidate ||

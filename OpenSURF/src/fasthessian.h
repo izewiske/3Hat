@@ -35,7 +35,8 @@ class FastHessian {
                 const int intervals = INTERVALS, 
                 const int init_sample = INIT_SAMPLE, 
                 const float thres = THRES,
-		IplImage* contour = NULL);
+		IplImage* contour = NULL,
+		IplImage* int_con = NULL);
 
     //! Constructor with image
     FastHessian(IplImage *img, 
@@ -44,7 +45,8 @@ class FastHessian {
                 const int intervals = INTERVALS, 
                 const int init_sample = INIT_SAMPLE, 
                 const float thres = THRES,
-		IplImage* contour = NULL);
+		IplImage* contour = NULL,
+		IplImage* int_con = NULL);
 
     //! Destructor
     ~FastHessian();
@@ -58,8 +60,11 @@ class FastHessian {
     //! Set or re-set the integral image source
     void setIntImage(IplImage *img);
 
-    //! Set or re-set the integral image source
-    void setConImage(IplImage *contour);
+    //! Set or re-set the contour map source
+    void setConMap(IplImage *contour);
+
+    //! Set or re-set the contour integral image source
+    void setConImage(IplImage *int_con);
 
     //! Find the image features and write into vector of features
     void getIpoints();
@@ -93,7 +98,7 @@ class FastHessian {
     //---------------- Private Variables -----------------//
 
     //! Pointer to the integral Image, and its attributes 
-    IplImage *img, *contour;
+    IplImage *img, *contour, *int_con;
     int i_width, i_height;
 
     //! Reference to vector of features passed from outside 
