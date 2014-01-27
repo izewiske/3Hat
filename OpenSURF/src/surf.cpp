@@ -759,9 +759,10 @@ inline float Surf::haarY(int row, int column, int s)
 //! Calculate Haar wavelet responses in x direction for a contour
 inline float Surf::haarXContour(int row, int column, int s, IplImage* int_con)
 {
-  float inverse_area = 1.f/BoxIntegral(int_con, row-s/2, column-s/2, s, s);
-  return (BoxIntegral(img, row-s/2, column, s, s/2) 
-          -1 * BoxIntegral(img, row-s/2, column-s/2, s, s/2))*inverse_area;
+  float inverse_plus = 1.f/BoxIntegral(int_con, row-s/2, column, s, s/2);
+  float inverse_minus = 1.f/BoxIntegral(int_con, row-s/2, column-s/2, s, s/2);
+  return BoxIntegral(img, row-s/2, column, s, s/2) * inverse_plus
+         -1 * BoxIntegral(img, row-s/2, column-s/2, s, s/2) * inverse_minus;
 }
 
 //-------------------------------------------------------
@@ -769,9 +770,10 @@ inline float Surf::haarXContour(int row, int column, int s, IplImage* int_con)
 //! Calculate Haar wavelet responses in y direction for contour
 inline float Surf::haarYContour(int row, int column, int s, IplImage* int_con)
 {
-  float inverse_area = 1.f/BoxIntegral(int_con, row-s/2, column-s/2, s, s);
-  return (BoxIntegral(img, row, column-s/2, s/2, s) 
-          -1 * BoxIntegral(img, row-s/2, column-s/2, s/2, s))*inverse_area;
+  float inverse_plus = 1.f/BoxIntegral(int_con, row, column-s/2, s/2, s);
+  float inverse_minus = 1.f/BoxIntegral(int_con, row-s/2, column-s/2, s/2, s);
+  return BoxIntegral(img, row, column-s/2, s/2, s) * inverse_plus
+         -1 * BoxIntegral(img, row-s/2, column-s/2, s/2, s) * inverse_minus;
 }
 
 
