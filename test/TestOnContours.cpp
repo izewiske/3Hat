@@ -68,13 +68,18 @@ void convertImageToMatrix(Image im,cv::Mat& image){
 
 int matchStrengths(cv::Mat mimg1, cv::Mat mimg2)
 {
-  bool matchGlobalOrientations = false;
+  bool matchGlobalOrientations = true;
+  std::cout<<"Running with matchGlobalOrientations = "<<matchGlobalOrientations<<" first."<<std::endl;
 
   // Make images as Mats; convert to IplImage for OpenSURF library actions
+  cv::Mat mc1 = mimg1.clone();
+  cv::Mat mc2 = mimg2.clone();
+  cv::Mat mc3 = mimg1.clone();
+  cv::Mat mc4 = mimg2.clone();
 
   IplImage iimg1, iimg2;
-  iimg1=mimg1;
-  iimg2=mimg2;
+  iimg1=mc1;
+  iimg2=mc2;
 
   IplImage *img1, *img2;
   img1 = &iimg1;
@@ -83,9 +88,6 @@ int matchStrengths(cv::Mat mimg1, cv::Mat mimg2)
   IpVec ipts1, ipts2;
   surfDetDes(img1,ipts1,false,4,4,2,0.0001f,matchGlobalOrientations);
   surfDetDes(img2,ipts2,false,4,4,2,0.0001f,matchGlobalOrientations);
-
-  drawIpoints(img1,ipts1);
-  drawIpoints(img2,ipts2);
 
   MatchVec matches;
   getMatchesSymmetric(ipts1,ipts2,matches);
@@ -119,12 +121,11 @@ int matchStrengths(cv::Mat mimg1, cv::Mat mimg2)
   cvShowImage("2",img2);
   cvWaitKey(0);
 
-  /*
 
   // NOW DO IT AGAIN!
   IplImage iimg3, iimg4;
-  iimg3=mimg1;
-  iimg4=mimg2;
+  iimg3=mc3;
+  iimg4=mc4;
 
   IplImage *img3, *img4;
   img3 = &iimg3;
@@ -164,7 +165,6 @@ int matchStrengths(cv::Mat mimg1, cv::Mat mimg2)
   cvShowImage("4",img4);
   cvWaitKey(0);
 
-  */
 
   return 0;
 }
