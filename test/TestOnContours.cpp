@@ -67,26 +67,14 @@ void convertImageToMatrix(Image im,cv::Mat& image){
 //! Generate a boolean mat for an image 
 // TODO: put this in a better place
 cv::Mat locsToBool(vector<PixelLoc> contourPixels, cv::Mat img){
-	cv::Mat boolMat(img.rows,img.cols,CV_8UC1,0);
-	
-	bool inContour = false;
-	for (int i=0; i<boolMat.cols; i++){
-		for (int j=0; j<boolMat.rows; j++){
-			inContour = false;
-			for (unsigned int k=0; k<contourPixels.size(); k++){
-				if (contourPixels[k].x == i && contourPixels[k].y == j){
-					inContour = true;
-					break;
-				}
-			}
-			if (inContour)
-				boolMat.at<uchar>(j,i) = 1;
-			else
-				boolMat.at<uchar>(j,i) = 0;
-		}
+	cv::Mat boolMat(img.rows,img.cols,CV_8UC3,cvScalar(0,0,0));
+
+        for (unsigned int i=0; i<contourPixels.size(); i++){
+		for (int j=0; j<3; j++)
+			boolMat.at<cv::Vec3b>(contourPixels[i].y,contourPixels[i].x)[j]=1;
 	}
 
-	return boolMat
+	return boolMat;
 }
 
 
@@ -241,15 +229,21 @@ int main( int argc, char** argv ) {
 	        cv::Rect roi1 = cv::boundingRect(contour1);
 		cv::Mat slice1(image1,roi1);
 		cv::Mat contourMatrix1 = slice1.clone();
-		cv::Mat bools1 = locsToBool(pixels1,contourMatrix1);
+		cv::Mat bools1 = locsToBool(pixels1,image1);
+		cv::Mat contourOnly1 = image1.mul(bools1);
+		cv::Mat sliceC1(contourOnly1,roi1);
+		cv::Mat contourOnlyMatrix1 = sliceC1.clone();
 
 	        cv::Rect roi2 = cv::boundingRect(contour2);
 		cv::Mat slice2(image2,roi2);
 		cv::Mat contourMatrix2 = slice2.clone();
-		cv::Mat bools2 = locsToBool(pixels2,contourMatrix2);
+		cv::Mat bools2 = locsToBool(pixels2,image2);
+		cv::Mat contourOnly2 = image2.mul(bools2);
+		cv::Mat sliceC2(contourOnly2,roi2);
+		cv::Mat contourOnlyMatrix2 = sliceC2.clone();
 
 		//detect and match features using (modified) OpenSURF
-		matchStrengths(contourMatrix1, contourMatrix2, bools1, bools2);
+		matchStrengths(contourOnlyMatrix1, contourOnlyMatrix2, bools1, bools2);
 
 		return 0;
 }
