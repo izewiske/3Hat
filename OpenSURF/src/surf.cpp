@@ -13,6 +13,7 @@
 #include "surf.h"
 
 #include <iostream>
+#include <cmath>
 
 //-------------------------------------------------------
 //! SURF priors (these need not be done at runtime)
@@ -128,10 +129,11 @@ void Surf::getOrientation(IplImage* int_con)
           resY[idx] = gauss * haarYContour(r+j*s, c+i*s, 4*s, int_con);
 	  
 	  // angle of the gradient (up from x-axis)
-	  if (resX[idx]!=FLT_MAX && resY[idx]!=FLT_MAX)
+	  if (std::isfinite(resX[idx]) && std::isfinite(resY[idx]))
             Ang[idx] = getAngle(resX[idx], resY[idx]);
-	  else
+	  else{
 	    Ang[idx] = FLT_MAX;
+          }
           ++idx;
         }
       }
@@ -454,16 +456,16 @@ void Surf::getOrientationGlobal(IplImage* int_con, const int init_sample)
         for (int y=0; y<h; y++){
           // calculate wavelet response at this point and scale
           resX[x*h+y] = haarXContour(x*s*sfactor, y*s*sfactor, sfactor*s, int_con);
-	  if (resX[x*h+y]!=FLT_MAX)
+	  if (std::isfinite(resX[x*h+y]))
             totX+=resX[x*h+y];
           resY[x*h+y] = haarYContour(x*s*sfactor, y*s*sfactor, sfactor*s, int_con);
-	  if (resY[x*h+y]!=FLT_MAX)
+	  if (std::isfinite(resY[x*h+y]))
             totY+=resY[x*h+y];
           // angle of the gradient (up from x-axis)
-	  if (resX!=FLT_MAX && resY!=FLT_MAX)
-            Ang[x*h+y] = getAngle(resX[x*h+y], resY[x*h+y]);
-	  else
-	    Ang[x*h+y] = FLT_MAX; 
+	  if (std::isfinite(resX[x*h+y]) && std::isfinite(resY[x*h+y]))
+            Ang[x*h+y] =  getAngle(resX[x*h+y], resY[x*h+y]);
+          else
+            Ang[x*h+y] = FLT_MAX;
 
           //std::cout<<"x: "<<x*s*2<<"\ty: "<<y*s*2<<std::endl;
         }
@@ -516,7 +518,7 @@ void Surf::getOrientationGlobal(IplImage* int_con, const int init_sample)
       }
     }
     
-    //std::cout<<" Image orientation is: "<<orientation<<" at scale "<<scale<<"\n"<<std::endl;
+    std::cout<<" Image orientation is: "<<orientation<<" at scale "<<scale<<"\n"<<std::endl;
 
 //    orientation = getAngle(totX,totY);
 
