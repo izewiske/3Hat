@@ -64,9 +64,35 @@ void convertImageToMatrix(Image im,cv::Mat& image){
 	return ;
 }
 
+//! Generate a boolean mat for an image 
+// TODO: put this in a better place
+cv::Mat locsToBool(vector<PixelLoc> contourPixels, cv::Mat img){
+	cv::Mat boolMat(img.rows,img.cols,CV_8UC1,0);
+	
+	bool inContour = false;
+	for (int i=0; i<boolMat.cols; i++){
+		for (int j=0; j<boolMat.rows; j++){
+			inContour = false;
+			for (unsigned int k=0; k<contourPixels.size(); k++){
+				if (contourPixels[k].x == i && contourPixels[k].y == j){
+					inContour = true;
+					break;
+				}
+			}
+			if (inContour)
+				boolMat.at<uchar>(j,i) = 1;
+			else
+				boolMat.at<uchar>(j,i) = 0;
+		}
+	}
+
+	return boolMat
+}
+
+
 //-------------------------------------------------------
 
-int matchStrengths(cv::Mat mimg1, cv::Mat mimg2)
+int matchStrengths(cv::Mat mimg1, cv::Mat mimg2, cv::Mat bools1, cv::Mat bools2)
 {
   bool matchGlobalOrientations = true;
   std::cout<<"Running with matchGlobalOrientations = "<<matchGlobalOrientations<<" first."<<std::endl;
@@ -215,13 +241,15 @@ int main( int argc, char** argv ) {
 	        cv::Rect roi1 = cv::boundingRect(contour1);
 		cv::Mat slice1(image1,roi1);
 		cv::Mat contourMatrix1 = slice1.clone();
+		cv::Mat bools1 = locsToBool(pixels1,contourMatrix1);
 
 	        cv::Rect roi2 = cv::boundingRect(contour2);
 		cv::Mat slice2(image2,roi2);
 		cv::Mat contourMatrix2 = slice2.clone();
+		cv::Mat bools2 = locsToBool(pixels2,contourMatrix2);
 
 		//detect and match features using (modified) OpenSURF
-		matchStrengths(contourMatrix1, contourMatrix2);
+		matchStrengths(contourMatrix1, contourMatrix2, bools1, bools2);
 
 		return 0;
 }
