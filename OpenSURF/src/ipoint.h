@@ -29,7 +29,7 @@ typedef std::vector<std::pair<std::pair<Ipoint, Ipoint>, float> > MatchVec;
 //! Ipoint operations
 void getMatches(IpVec &ipts1, IpVec &ipts2, IpPairVec &matches);
 void getMatches(IpVec &ipts1, IpVec &ipts2, MatchVec &matches);
-void getMatchesSymmetric(IpVec &ipts1, IpVec &ipts2, MatchVec &matches);
+void getMatchesSymmetric(IpVec &ipts1, IpVec &ipts2, MatchVec &matches, bool partial = false);
 int translateCorners(IpPairVec &matches, const CvPoint src_corners[4], CvPoint dst_corners[4]);
 
 //-------------------------------------------------------
@@ -52,12 +52,21 @@ public:
     return sqrt(sum);
   };
 
+  //! Gets the distance in descriptor space between partial Ipoint descriptors
   float partialDistance(const Ipoint &rhs){
-    float sum=0.f;
-    for(int i=0; i < 64; ++i)
-      if (this->descriptor[i]!=FLT_MAX && rhs.descriptor[i]!=FLT_MAX)
+    float sum=0.f, count=0.f;
+    for(int i=0; i < 64; ++i){
+      if(std::isfinite(this->descriptor[i]) && std::isfinite(rhs.descriptor[i])){
         sum += (this->descriptor[i] - rhs.descriptor[i])*(this->descriptor[i] - rhs.descriptor[i]);
-    return sqrt(sum);
+        count+=1;
+      }
+    }
+    //std::cout<<count<<" -- "<<sum<<std::endl;
+    
+    if (count==0.f)
+      return FLT_MAX;
+    else
+      return sqrt(sum/count);
   };
 
   //! Compares two Ipoints

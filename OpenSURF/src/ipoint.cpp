@@ -97,9 +97,7 @@ void getMatches(IpVec &ipts1, IpVec &ipts2, MatchVec &matches){
 
 //! Populate IpPairVec with matched ipts AND strength of match (ratio of first over second match val)
 //! Invariant to ordering of &ipts1 vs &ipts2
-//! Current: just gets all the matches from both directions
-//! Future: limit each point to one match?
-void getMatchesSymmetric(IpVec &ipts1, IpVec &ipts2, MatchVec &matches){
+void getMatchesSymmetric(IpVec &ipts1, IpVec &ipts2, MatchVec &matches, bool partial){
   float d1, d2;
   float** dists;
   Ipoint *match;
@@ -120,7 +118,10 @@ void getMatchesSymmetric(IpVec &ipts1, IpVec &ipts2, MatchVec &matches){
 
     for(unsigned int j = 0; j < ipts2.size(); j++) 
     {
-      dists[i][j] = ipts1[i] - ipts2[j];  
+      if (partial)
+        dists[i][j] = ipts1[i].partialDistance(ipts2[j]);
+      else
+        dists[i][j] = ipts1[i] - ipts2[j];  
 
       if(dists[i][j]<d1) // if this feature matches better than current best
       {

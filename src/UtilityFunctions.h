@@ -176,31 +176,6 @@ bool contourIsDifficult(Contour contour,Image image){
 	return isDifficult;
 }
 
-//! Generate a boolean mat for an image 
-cv::Mat locsToBool(vector<PixelLoc> contourPixels, cv::Mat img){
-	cv::Mat boolMat(img.rows,img.cols,CV_8UC1,0);
-	
-	bool inContour = false;
-	for (int i=0; i<boolMat.cols; i++){
-		for (int j=0; j<boolMat.rows; j++){
-			inContour = false;
-			for (unsigned int k=0; k<contourPixels.size(); k++){
-				if (contourPixels[k].x == i && contourPixels[k].y == j){
-					inContour = true;
-					break;
-				}
-			}
-			if (inContour)
-				boolMat.at<uchar>(j,i) = 1;
-			else
-				boolMat.at<uchar>(j,i) = 0;
-		}
-	}
-
-	return boolMat;
-}
-
-
 #endif //__OPENCV_UTLITY_FUNCTIONS__
 
 double calculateColorDifference(double * lab1, double * lab2) {

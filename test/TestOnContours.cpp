@@ -111,7 +111,7 @@ int matchStrengths(cv::Mat mimg1, cv::Mat mimg2, cv::Mat bools1, cv::Mat bools2)
   drawIpoints(img2, ipts2);
 
   MatchVec matches;
-  getMatchesSymmetric(ipts1,ipts2,matches);
+  getMatchesSymmetric(ipts1,ipts2,matches,false);
 
   IpVec mpts1, mpts2;
 
@@ -160,7 +160,7 @@ int matchStrengths(cv::Mat mimg1, cv::Mat mimg2, cv::Mat bools1, cv::Mat bools2)
   drawIpoints(img4,ipts4);
 
   matches.clear();
-  getMatchesSymmetric(ipts3,ipts4,matches);
+  getMatchesSymmetric(ipts3,ipts4,matches,false);
 
   IpVec mpts3, mpts4;
 
