@@ -244,7 +244,7 @@ void FastHessian::buildResponseLayer(ResponseLayer *rl)
       if (contour!=NULL){
         if (CV_IMAGE_ELEM(contour, cv::Vec3b, r, c)==cv::Vec3b(0,0,0))
 	  continue;
-	inverse_area = 1.f/BoxIntegral(int_con, r-b, c-b, w, w);
+	inverse_area = 1.f/(BoxIntegral(int_con, r-b, c-b, w, w)*255);
       }
 
       // Compute response components
