@@ -439,20 +439,30 @@ void Surf::getOrientationGlobal(IplImage* int_con, const int init_sample)
 
     // decide whether to use haar or haarContour
     if (int_con==NULL){
+      cv::Mat haarMatX(h,w,CV_8UC1,cvScalar(0));
+      cv::Mat haarMatY(h,w,CV_8UC1,cvScalar(0));
       // calculate haar response for the entire image at this scale
       for (int x=0; x<h; x++){
         for (int y=0; y<w; y++){
           // calculate wavelet response at this point and scale
           resX[x*w+y] = haarX(x*s*sfactor, y*s*sfactor, sfactor*s);
           totX+=resX[x*w+y];
+            haarMatX.at<unsigned char>(x,y)=resX[x*w+y];
           resY[x*w+y] = haarY(x*s*sfactor, y*s*sfactor, sfactor*s);
           totY+=resY[x*w+y];
+            haarMatY.at<unsigned char>(x,y)=resY[x*w+y];
           // angle of the gradient (up from x-axis)
           Ang[x*w+y] = getAngle(resX[x*w+y], resY[x*w+y]);
 
           //std::cout<<"x: "<<x*s*2<<"\ty: "<<y*s*2<<std::endl;
         }
       }
+      std::cout<<"scale: "<<s*sfactor<<std::endl;
+      cv::namedWindow("haarX", cv::WINDOW_AUTOSIZE);
+      cv::imshow("haarX", haarMatX);
+      cv::namedWindow("haarY", cv::WINDOW_AUTOSIZE);
+      cv::imshow("haarY", haarMatY);
+      cv::waitKey(0);
     }
     else {
       // calculate haar response for the entire image at this scale
@@ -796,8 +806,10 @@ inline float Surf::haarXContour(int row, int column, int s, IplImage* int_con)
 {
   float inverse_plus = 1.f/BoxIntegral(int_con, row-s/2, column, s, s/2);
   float inverse_minus = 1.f/BoxIntegral(int_con, row-s/2, column-s/2, s, s/2);
-  return BoxIntegral(img, row-s/2, column, s, s/2) * inverse_plus
-         -1 * BoxIntegral(img, row-s/2, column-s/2, s, s/2) * inverse_minus;
+  //factor of 255 because our bool integral image got converted to float
+  return (BoxIntegral(img, row-s/2, column, s, s/2) * inverse_plus
+          -1 * BoxIntegral(img, row-s/2, column-s/2, s, s/2) * inverse_minus)
+          * s*s/255.0;
 }
 
 //-------------------------------------------------------
@@ -807,8 +819,10 @@ inline float Surf::haarYContour(int row, int column, int s, IplImage* int_con)
 {
   float inverse_plus = 1.f/BoxIntegral(int_con, row, column-s/2, s/2, s);
   float inverse_minus = 1.f/BoxIntegral(int_con, row-s/2, column-s/2, s/2, s);
-  return BoxIntegral(img, row, column-s/2, s/2, s) * inverse_plus
-         -1 * BoxIntegral(img, row-s/2, column-s/2, s/2, s) * inverse_minus;
+  //factor of 255 because our bool integral image got converted to float
+  return (BoxIntegral(img, row, column-s/2, s/2, s) * inverse_plus
+          -1 * BoxIntegral(img, row-s/2, column-s/2, s/2, s) * inverse_minus)
+          * s*s/255.0;
 }
 
 
