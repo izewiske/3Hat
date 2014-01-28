@@ -85,15 +85,11 @@ class FastHessian {
     
     //! Interpolation functions - adapted from Lowe's SIFT implementation
     void interpolateExtremum(int r, int c, ResponseLayer *t, ResponseLayer *m, ResponseLayer *b);
-    void interpolateExtremumInContour(int r, int c, ResponseLayer *t, ResponseLayer *m, ResponseLayer *b, ContourMat* con);
     void interpolateStep(int r, int c, ResponseLayer *t, ResponseLayer *m, ResponseLayer *b,
                           double* xi, double* xr, double* xc );
-    void interpolateStepInContour(int r, int c, ResponseLayer *t, ResponseLayer *m, ResponseLayer *b,
                           double* xi, double* xr, double* xc, ContourMat* con );
     CvMat* deriv3D(int r, int c, ResponseLayer *t, ResponseLayer *m, ResponseLayer *b);
-    CvMat* deriv3DInContour(int r, int c, ResponseLayer *t, ResponseLayer *m, ResponseLayer *b, ContourMat* con);
     CvMat* hessian3D(int r, int c, ResponseLayer *t, ResponseLayer *m, ResponseLayer *b);
-    CvMat* hessian3DInContour(int r, int c, ResponseLayer *t, ResponseLayer *m, ResponseLayer *b, ContourMat* con);
 
     //---------------- Private Variables -----------------//
 
