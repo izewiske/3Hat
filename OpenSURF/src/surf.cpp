@@ -518,9 +518,9 @@ void Surf::getOrientationGlobal(IplImage* int_con, const int init_sample)
       }
     }
     
-    std::cout<<" Image orientation is: "<<orientation<<" at scale "<<scale<<"\n"<<std::endl;
+    //std::cout<<" Image orientation is: "<<orientation<<" at scale "<<scale<<"\n"<<std::endl;
 
-//    orientation = getAngle(totX,totY);
+ //   orientation = getAngle(totX,totY);
 
     oris[scale] = orientation;
 
@@ -683,7 +683,15 @@ void Surf::getDescriptorGlobal(bool bUpright, IplImage* int_con)
         desc[count++] = mdx*gauss_s2;
         desc[count++] = mdy*gauss_s2;
 
-        len += (dx*dx + dy*dy + mdx*mdx + mdy*mdy) * gauss_s2*gauss_s2;
+        /*
+        if (!std::isfinite(rx) || !std::isfinite(ry))
+            std::cout<<dx*gauss_s2<<" -- "<<dy*gauss_s2<<" -- "<<mdx*gauss_s2<<" -- "<<mdy*gauss_s2<<std::endl;
+        */
+
+        if (std::isfinite(dx))
+          len+=(dx*dx+mdx*mdx)*gauss_s2*gauss_s2;
+        if (std::isfinite(dy))
+          len+=(dy*dy+mdy*mdy)*gauss_s2*gauss_s2;
 
         j += 9;
       }
@@ -695,7 +703,6 @@ void Surf::getDescriptorGlobal(bool bUpright, IplImage* int_con)
   len = sqrt(len);
   for(int i = 0; i < 64; ++i)
     desc[i] /= len;
-
 }
 
 //-------------------------------------------------------

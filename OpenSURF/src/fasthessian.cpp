@@ -240,6 +240,7 @@ void FastHessian::buildResponseLayer(ResponseLayer *rl)
       r = ar * step;
       c = ac * step; 
 
+      //only calculate response layer values for things in the contour
       if (contour!=NULL){
         if (CV_IMAGE_ELEM(contour, cv::Vec3b, r, c)==cv::Vec3b(0,0,0))
 	  continue;
@@ -262,6 +263,7 @@ void FastHessian::buildResponseLayer(ResponseLayer *rl)
       Dxy *= inverse_area;
      
       // Get the determinant of hessian response & laplacian sign
+      // TODO: Are indices correct for contours?
       responses[index] = (Dxx * Dyy - 0.81f * Dxy * Dxy);
       laplacian[index] = (Dxx + Dyy >= 0 ? 1 : 0);
 
@@ -387,7 +389,7 @@ CvMat* FastHessian::deriv3D(int r, int c, ResponseLayer *t, ResponseLayer *m, Re
   dx = (m->getResponse(r, c + 1, t) - m->getResponse(r, c - 1, t)) / 2.0;
   dy = (m->getResponse(r + 1, c, t) - m->getResponse(r - 1, c, t)) / 2.0;
   ds = (t->getResponse(r, c) - b->getResponse(r, c, t)) / 2.0;
-  
+
   dI = cvCreateMat( 3, 1, CV_64FC1 );
   cvmSet( dI, 0, 0, dx );
   cvmSet( dI, 1, 0, dy );
@@ -425,7 +427,7 @@ CvMat* FastHessian::hessian3D(int r, int c, ResponseLayer *t, ResponseLayer *m, 
   cvmSet( H, 2, 0, dxs );
   cvmSet( H, 2, 1, dys );
   cvmSet( H, 2, 2, dss );
-
+  
   return H;
 }
 
