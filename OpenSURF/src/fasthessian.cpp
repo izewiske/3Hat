@@ -226,11 +226,8 @@ void FastHessian::buildResponseLayer(ResponseLayer *rl)
   int b = (rl->filter - 1) / 2;             // border for this filter
   int l = rl->filter / 3;                   // lobe for this filter (filter size / 3)
   int w = rl->filter;                       // filter size
-  float inverse_area;                       // normalisation factor
+  float inverse_area = 1.f/(w*w);           // normalisation factor
   float Dxx, Dyy, Dxy;
-
-  if (contour==NULL)
-    inverse_area = 1.f/(w*w);
 
   for(int r, c, ar = 0, index = 0; ar < rl->height; ++ar) 
   {
@@ -244,18 +241,39 @@ void FastHessian::buildResponseLayer(ResponseLayer *rl)
       if (contour!=NULL){
         if (CV_IMAGE_ELEM(contour, cv::Vec3b, r, c)==cv::Vec3b(0,0,0))
 	  continue;
-	inverse_area = 1.f/(BoxIntegral(int_con, r-b, c-b, w, w)*255);
+        // Compute response components
+        Dxx =   BoxIntegral(img, r - l + 1, c - b, 2*l - 1, w)
+           /BoxIntegral(int_con, r - l + 1, c - b, 2*l - 1, w)*(2*l-1)*w
+              - BoxIntegral(img, r - l + 1, c - l / 2, 2*l - 1, l)*3
+           /BoxIntegral(int_con, r - l + 1, c - l / 2, 2*l - 1, l)*(2*l-1)*l;
+        Dyy =   BoxIntegral(img, r - b, c - l + 1, w, 2*l - 1)
+           /BoxIntegral(int_con, r - b, c - l + 1, w, 2*l - 1)*w*(2*l-1)
+              - BoxIntegral(img, r - l / 2, c - l + 1, l, 2*l - 1)*3
+           /BoxIntegral(int_con, r - l / 2, c - l + 1, l, 2*l - 1)*l*(2*l-1);
+        Dxy =   BoxIntegral(img, r - l, c + 1, l, l)
+           /BoxIntegral(int_con, r - l, c + 1, l, l)*l*l
+              + BoxIntegral(img, r + 1, c - l, l, l)
+           /BoxIntegral(int_con, r + 1, c - l, l, l)*l*l
+              - BoxIntegral(img, r - l, c - l, l, l)
+           /BoxIntegral(int_con, r - l, c - l, l, l)*l*l
+              - BoxIntegral(img, r + 1, c + 1, l, l)
+           /BoxIntegral(int_con, r + 1, c + 1, l, l)*l*l;
+        Dxx /= 255;
+        Dyy /= 255;
+        Dxy /= 255;
       }
-
-      // Compute response components
-      Dxx = BoxIntegral(img, r - l + 1, c - b, 2*l - 1, w)
-          - BoxIntegral(img, r - l + 1, c - l / 2, 2*l - 1, l)*3;
-      Dyy = BoxIntegral(img, r - b, c - l + 1, w, 2*l - 1)
-          - BoxIntegral(img, r - l / 2, c - l + 1, l, 2*l - 1)*3;
-      Dxy = + BoxIntegral(img, r - l, c + 1, l, l)
-            + BoxIntegral(img, r + 1, c - l, l, l)
-            - BoxIntegral(img, r - l, c - l, l, l)
-            - BoxIntegral(img, r + 1, c + 1, l, l);
+      else { //not contour-specific
+        // Compute response components
+        // TODO: fix for contours (inverse area for each BoxIntegral call)
+        Dxx = + BoxIntegral(img, r - l + 1, c - b, 2*l - 1, w)
+              - BoxIntegral(img, r - l + 1, c - l / 2, 2*l - 1, l)*3;
+        Dyy = + BoxIntegral(img, r - b, c - l + 1, w, 2*l - 1)
+              - BoxIntegral(img, r - l / 2, c - l + 1, l, 2*l - 1)*3;
+        Dxy = + BoxIntegral(img, r - l, c + 1, l, l)
+              + BoxIntegral(img, r + 1, c - l, l, l)
+              - BoxIntegral(img, r - l, c - l, l, l)
+              - BoxIntegral(img, r + 1, c + 1, l, l);
+      }
 
       // Normalise the filter responses with respect to their size
       Dxx *= inverse_area;
