@@ -141,8 +141,10 @@ double compareFeaturePoints(Plane computedPoints, Plane actualPoints){
 
 Plane getUserDefinedPlane(std::string tileID,std::string imageID){
 	// TODO: I don't know if these are ordered in a fashion such that coresponding points have same index
-	std::vector<Coord> leftStandard = getFeaturePoints(tileID,imageID+"L");
-	std::vector<Coord> rightStandard = getFeaturePoints(tileID,imageID+"R");
+	std::string imageIDL = imageID + "L";
+	std::string imageIDR = imageID + "R";
+	std::vector<Coord> leftStandard = getFeaturePoints(tileID,imageIDL);
+	std::vector<Coord> rightStandard = getFeaturePoints(tileID,imageIDR);
 	if (leftStandard.size() != rightStandard.size()){
 		std::cerr << "That's odd, the number of points in the right and left images of the gold standard differs. You broke science.\n";
 		exit;
@@ -165,8 +167,10 @@ int main(int argc, char** argv){
 	//loop through images
 	for (int i = 1; i < argc; i++){
 		std::string imageID = argv[i];
-		Image im1( (imageID + "L").c_str());
-		Image im2( (imageID + "R").c_str());
+		std::string imageIDL = imageID + "L";
+		std::string imageIDR = imageID + "R";
+		Image im1( imageIDL.c_str());
+		Image im2( imageIDR.c_str());
 		cv::Mat image1(im1.getHeight(),im1.getWidth(),CV_8UC3,(void *) im1.getData());
 		cv::Mat image2(im2.getHeight(),im2.getWidth(),CV_8UC3,(void *) im2.getData());
 		if(! image1.data | !image2.data) {
@@ -177,8 +181,8 @@ int main(int argc, char** argv){
 		std::vector<std::string> listOfTiles = getTileIDsForImage(imageID);
 		for(int k = 0; k < listOfTiles.size(); k++) {
 			std::string tileID = listOfTiles[k];
-			std::vector<PixelLoc> pixels1 = getContour(tileID,imageID+"L");
-			std::vector<PixelLoc> pixels2 = getContour(tileID,imageID+"R");
+			std::vector<PixelLoc> pixels1 = getContour(tileID,imageIDL);
+			std::vector<PixelLoc> pixels2 = getContour(tileID,imageIDR);
 			std::vector<cv::Point2f> contour1;
 	        for (int j = 0; j < pixels1.size(); ++j) {
 	        	cv::Point2f p1(pixels1[j].x,pixels1[j].y);
