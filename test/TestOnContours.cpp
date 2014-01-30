@@ -21,7 +21,6 @@
 #endif
 #endif
 
-
 cv::Rect defineROI(std::vector<PixelLoc> contourPixels){
 	std::vector<cv::Point2f> contour;
 	//TODO: include boundary margins on region of interest
@@ -70,8 +69,9 @@ cv::Mat locsToBool(vector<PixelLoc> contourPixels, cv::Mat img){
 	cv::Mat boolMat(img.rows,img.cols,CV_8UC3,cvScalar(0,0,0));
 
         for (unsigned int i=0; i<contourPixels.size(); i++){
-		for (int j=0; j<3; j++)
+		for (int j=0; j<3; j++){
 			boolMat.at<cv::Vec3b>(contourPixels[i].y,contourPixels[i].x)[j]=1;
+		}
 	}
 
 	return boolMat;
@@ -153,8 +153,8 @@ int matchStrengths(cv::Mat mimg1, cv::Mat mimg2, cv::Mat bools1, cv::Mat bools2)
   img4 = &iimg4;
 
   IpVec ipts3, ipts4;
-  surfDetDes(img3,ipts3,false,4,4,2,0.0001f,!matchGlobalOrientations,b1);
-  surfDetDes(img4,ipts4,false,4,4,2,0.0001f,!matchGlobalOrientations,b2);
+  surfDetDes(img3,ipts3,false,4,4,2,0.0001f,matchGlobalOrientations);
+  surfDetDes(img4,ipts4,false,4,4,2,0.0001f,matchGlobalOrientations);
 
   drawIpoints(img3,ipts3);
   drawIpoints(img4,ipts4);
@@ -188,7 +188,6 @@ int matchStrengths(cv::Mat mimg1, cv::Mat mimg2, cv::Mat bools1, cv::Mat bools2)
   cvShowImage("3", img3);
   cvShowImage("4",img4);
   cvWaitKey(0);
-
 
   return 0;
 }
