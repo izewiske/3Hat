@@ -410,6 +410,8 @@ void Surf::getOrientationGlobal(IplImage* int_con, const int init_sample)
   }
 
   float sumScaleOris = 0.f;
+  float sumScaleXs=0.f, sumScaleYs=0.f;
+  float maxSumX, maxSumY;
   const int NUMSCALES = 5; 
 
   for (int scale = 2; scale < 2+2*NUMSCALES; scale+=2){
@@ -499,6 +501,8 @@ void Surf::getOrientationGlobal(IplImage* int_con, const int init_sample)
       cv::waitKey(0);
     }
     //std::cout<<" Angle from totals: "<<getAngle(totX,totY)<<" at scale "<<scale<<std::endl;
+
+    maxSumX = 0.f; maxSumY = 0.f;
     
     float orientation = 0.f;
 
@@ -508,9 +512,10 @@ void Surf::getOrientationGlobal(IplImage* int_con, const int init_sample)
     float ang1=0.f, ang2=0.f;
 
     // loop slides pi/3 window from ang1 to ang2
+    float piOverWhat = 3.0f;
     // increments of .15 radians
     for(ang1 = 0; ang1 < 2*pi;  ang1+=0.15f) {
-      ang2 = ( ang1+pi/3.0f > 2*pi ? ang1-5.0f*pi/3.0f : ang1+pi/3.0f);
+      ang2 = ( ang1+pi/piOverWhat > 2*pi ? ang1-5.0f*pi/piOverWhat : ang1+pi/piOverWhat);
 
       sumX = sumY = 0.f; 
       for(unsigned int k = 0; k < Ang.size(); ++k) 
@@ -540,12 +545,14 @@ void Surf::getOrientationGlobal(IplImage* int_con, const int init_sample)
         // store largest orientation
         max = sumX*sumX + sumY*sumY;
         orientation = getAngle(sumX, sumY);
-  
-        //std::cout<<" New maximum: "<<max<<" at orientation "<<orientation<<std::endl;
+        maxSumX = sumX;
+        maxSumY = sumY;
       }
     }
     
-    //std::cout<<" Image orientation is: "<<orientation<<" at scale "<<scale<<"\n"<<std::endl;
+    sumScaleXs+=maxSumX;
+    sumScaleYs+=maxSumY;
+    std::cout<<" Image orientation is: "<<orientation<<" at scale "<<scale<<"\n"<<std::endl;
 
 //    orientation = getAngle(totX,totY);
 
@@ -556,6 +563,9 @@ void Surf::getOrientationGlobal(IplImage* int_con, const int init_sample)
     sumScaleOris += orientation;
   } //calc new orientation
   oris[-1] = sumScaleOris/(2+NUMSCALES);
+  oris[-1] = getAngle(sumScaleXs,sumScaleYs);
+
+  std::cout<<"Total orientation: "<<oris[-1]<<std::endl;
   ipt->orientation = oris[-1];
 }
 
