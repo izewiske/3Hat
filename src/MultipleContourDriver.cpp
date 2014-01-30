@@ -178,7 +178,16 @@ int main(int argc, char** argv){
 				return -1;
 		}
 		//get list of tiles in image pair
-		std::vector<std::string> listOfTiles = getTileIDsForImage(imageID);
+		std::vector<std::string> listOfTiles = getTileIDsForImage(imageIDL);
+		/*std::vector<std::string> listOfTilesR = getTileIDsForImage(imageIDR);
+		for (int w=0; w<listOfTilesR.size();w++){
+			listOfTiles.push_back(listOfTilesR[w]);
+		}
+		// make unique list of tiles
+		std::sort(listOfTiles.begin(), listOfTiles.end());
+		listOfTiles.erase(std::unique(listOfTiles.begin(), listOfTiles.end()), listOfTiles.end());
+		*/
+		//start that iteration
 		for(int k = 0; k < listOfTiles.size(); k++) {
 			std::string tileID = listOfTiles[k];
 			std::vector<PixelLoc> pixels1 = getContour(tileID,imageIDL);
