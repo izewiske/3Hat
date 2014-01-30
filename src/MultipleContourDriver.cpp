@@ -163,7 +163,7 @@ int main(int argc, char** argv){
 		 	return -1;
 		}
 	//loop through images
-	for (int i = 0; i < argc; i++){
+	for (int i = 1; i < argc; i++){
 		std::string imageID = argv[i];
 		Image im1( (imageID + "L").c_str());
 		Image im2( (imageID + "R").c_str());
