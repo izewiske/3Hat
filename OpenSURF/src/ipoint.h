@@ -54,19 +54,19 @@ public:
 
   //! Gets the distance in descriptor space between partial Ipoint descriptors
   float partialDistance(const Ipoint &rhs){
-    float sum=0.f, count=0.f;
+    float sum=0.f;
+    int count = 0;
     for(int i=0; i < 64; ++i){
       if(std::isfinite(this->descriptor[i]) && std::isfinite(rhs.descriptor[i])){
         sum += (this->descriptor[i] - rhs.descriptor[i])*(this->descriptor[i] - rhs.descriptor[i]);
-        count+=1;
+        count++;
       }
     }
-    //std::cout<<count<<" -- "<<sum<<std::endl;
     
-    if (count==0.f)
+    if (count==0)
       return FLT_MAX;
     else
-      return sqrt(sum/count);
+      return sqrt(sum/((float)count));
   };
 
   //! Compares two Ipoints

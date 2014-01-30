@@ -80,14 +80,14 @@ cv::Mat locsToBool(vector<PixelLoc> contourPixels, cv::Mat img){
 
 //-------------------------------------------------------
 
-int matchStrengths(cv::Mat mimg1, cv::Mat mimg2, cv::Mat bools1, cv::Mat bools2)
+int matchStrengths(cv::Mat mimg1, cv::Mat mimg2, cv::Mat cimg1, cv::Mat cimg2, cv::Mat bools1, cv::Mat bools2)
 {
   bool matchGlobalOrientations = true;
   std::cout<<"Running with matchGlobalOrientations = "<<matchGlobalOrientations<<" first."<<std::endl;
 
   // Make images as Mats; convert to IplImage for OpenSURF library actions
-  cv::Mat mc1 = mimg1.clone();
-  cv::Mat mc2 = mimg2.clone();
+  cv::Mat mc1 = cimg1.clone();
+  cv::Mat mc2 = cimg2.clone();
   cv::Mat mc3 = mimg1.clone();
   cv::Mat mc4 = mimg2.clone();
 
@@ -104,8 +104,8 @@ int matchStrengths(cv::Mat mimg1, cv::Mat mimg2, cv::Mat bools1, cv::Mat bools2)
   b2 = &bi2;
 
   IpVec ipts1, ipts2;
-  surfDetDes(img1,ipts1,false,4,4,2,0.0001f,matchGlobalOrientations,b1);
-  surfDetDes(img2,ipts2,false,4,4,2,0.0001f,matchGlobalOrientations,b2);
+  surfDetDesContour(img1,ipts1,false,4,4,2,0.0001f,matchGlobalOrientations,b1);
+  surfDetDesContour(img2,ipts2,false,4,4,2,0.0001f,matchGlobalOrientations,b2);
 
   drawIpoints(img1, ipts1);
   drawIpoints(img2, ipts2);
@@ -153,14 +153,14 @@ int matchStrengths(cv::Mat mimg1, cv::Mat mimg2, cv::Mat bools1, cv::Mat bools2)
   img4 = &iimg4;
 
   IpVec ipts3, ipts4;
-  surfDetDes(img3,ipts3,false,4,4,2,0.0001f,matchGlobalOrientations);
-  surfDetDes(img4,ipts4,false,4,4,2,0.0001f,matchGlobalOrientations);
+  surfDetDes(img3,ipts3,false,4,4,2,0.0001f,matchGlobalOrientations,b1);
+  surfDetDes(img4,ipts4,false,4,4,2,0.0001f,matchGlobalOrientations,b2);
 
   drawIpoints(img3,ipts3);
   drawIpoints(img4,ipts4);
 
   matches.clear();
-  getMatchesSymmetric(ipts3,ipts4,matches,true);
+  getMatchesSymmetric(ipts3,ipts4,matches,false);
 
   IpVec mpts3, mpts4;
 
@@ -252,7 +252,7 @@ int main( int argc, char** argv ) {
 		cv::Mat contourOnly2 = contourMatrix2.mul(contourBools2);
 
 		//detect and match features using (modified) OpenSURF
-		matchStrengths(contourOnly1, contourOnly2, contourBools1, contourBools2);
+		matchStrengths(contourMatrix1, contourMatrix2, contourOnly1, contourOnly2, contourBools1, contourBools2);
 
 		return 0;
 }
