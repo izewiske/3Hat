@@ -20,6 +20,18 @@ endif()
 
 add_definitions(-DUSE_GL)
 
+if(EXISTS "${ROOT}/src/eriolObjs.o")
+else()
+file(	COPY /home/cg/palantir/atp14/src/eriolObjs.o
+    	DESTINATION ${ROOT}/src/)
+endif()
+
+if(EXISTS "${ROOT}/src/eriolHeader.h")
+else()
+file(	COPY /home/cg/palantir/atp14/src/eriolHeader.h
+    	DESTINATION ${ROOT}/src/)
+endif()
+
 add_subdirectory(OpenSURF/src)
 add_subdirectory(src)
 add_subdirectory(test)
