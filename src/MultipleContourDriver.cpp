@@ -35,7 +35,7 @@
 
 Plane matchStrengths(cv::Mat mimg1, cv::Mat mimg2, cv::Mat bools1, cv::Mat bools2) {
 	bool matchGlobalOrientations = true;
-	std::cout<<"Running with matchGlobalOrientations = "<<matchGlobalOrientations<<" first."<<std::endl;
+	OUT <<"Running with matchGlobalOrientations = "<<matchGlobalOrientations<<" first."<<std::endl;
 
 	// Make images as Mats; convert to IplImage for OpenSURF library actions
 	cv::Mat mc1 = mimg1.clone();
@@ -80,7 +80,7 @@ Plane matchStrengths(cv::Mat mimg1, cv::Mat mimg2, cv::Mat bools1, cv::Mat bools
 		matchesVector.rightImage.push_back(PixelLoc(matches[i].first.second.x,matches[i].first.second.y));
 	}
 
-	std::cout<< "OpenSURF Matches: " << matches.size() << std::endl;
+	OUT << "Number of OpenSURF Matches: " << matches.size() << std::endl;
 	return matchesVector;
 }
 
@@ -146,7 +146,7 @@ Plane getUserDefinedPlane(std::string tileID,std::string imageID){
 	std::vector<Coord> leftStandard = getFeaturePoints(tileID,imageIDL);
 	std::vector<Coord> rightStandard = getFeaturePoints(tileID,imageIDR);
 	if (leftStandard.size() != rightStandard.size()){
-		std::cerr << "That's odd, the number of points in the right and left images of the gold standard differs. You broke science.\n";
+		ERR << "That's odd, the number of points in the right and left images of the gold standard differs. You broke science.\n";
 		exit;
 	}
 	Plane actual;
@@ -161,7 +161,7 @@ Plane getUserDefinedPlane(std::string tileID,std::string imageID){
 int main(int argc, char** argv){
 	if( argc == 1) {
 			// scottt100 1149L 1149R
-		 	std::cerr <<" Usage: image1ID image2ID ... " << std::endl;
+		 	ERR <<" Usage: imageID1 imageID2 ... imageIDn" << std::endl;
 		 	return -1;
 		}
 	//loop through images
@@ -174,7 +174,7 @@ int main(int argc, char** argv){
 		cv::Mat image1(im1.getHeight(),im1.getWidth(),CV_8UC3,(void *) im1.getData());
 		cv::Mat image2(im2.getHeight(),im2.getWidth(),CV_8UC3,(void *) im2.getData());
 		if(! image1.data | !image2.data) {
-				std::cout <<	"Could not open one or more images.\n";
+				OUT  <<	"Could not open one or more images.\n";
 				return -1;
 		}
 		//get list of tiles in image pair
@@ -225,15 +225,20 @@ int main(int argc, char** argv){
 			Plane goldStandard = getUserDefinedPlane(tileID,imageID);
 
 			// compare with stats
-			std::cout << "Overall match quality: " << compareFeaturePoints(surfMatches,goldStandard) << ".\n";
-			Plane best = bestPossibleComputedPlane(surfMatches,goldStandard);
-			std::cout<<"Best possible computed plane:";
-			for (int j=0; j< best.leftImage.size(); j++){
-				std::cout << "\t (" << best.leftImage[j].x << ", " << best.leftImage[j].y << ")->(" << best.rightImage[j].x << ", " << best.rightImage[j].y << ")";			
+			OUT  << "Overall match quality: " << compareFeaturePoints(surfMatches,goldStandard) << ".\n";
+			// matching fewer than three points is useless.
+			if (surfMatches.leftImage.size() < 3 || surfMatches.rightImage.size() < 3) {
+				OUT << "Tile: " << tileID << " does not have any strong SURF features. Consider alternative methods.\n";
+				continue;
 			}
-			std::cout<<"\nGold standard plane:" ;
+			Plane best = bestPossibleComputedPlane(surfMatches,goldStandard);
+			OUT <<"Best possible computed plane:";
+			for (int j=0; j< best.leftImage.size(); j++){
+				OUT  << "\t (" << best.leftImage[j].x << ", " << best.leftImage[j].y << ")->(" << best.rightImage[j].x << ", " << best.rightImage[j].y << ")";			
+			}
+			OUT <<"\nGold standard plane:";
 			for (int j=0; j< goldStandard.leftImage.size(); j++){
-				std::cout << "\t (" << goldStandard.leftImage[j].x << ", " << goldStandard.leftImage[j].y << ")->(" << goldStandard.rightImage[j].x << ", " << goldStandard.rightImage[j].y << ")";		
+				OUT  << "\t (" << goldStandard.leftImage[j].x << ", " << goldStandard.leftImage[j].y << ")->(" << goldStandard.rightImage[j].x << ", " << goldStandard.rightImage[j].y << ")";		
 			}
 		}
 	}

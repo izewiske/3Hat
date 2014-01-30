@@ -459,7 +459,7 @@ void Surf::getOrientationGlobal(IplImage* int_con, const int init_sample)
           //std::cout<<"x: "<<x*s*2<<"\ty: "<<y*s*2<<std::endl;
         }
       }
-      std::cout<<"scale: "<<s*sfactor<<std::endl;
+      //std::cout<<"scale: "<<s*sfactor<<std::endl;
       cv::namedWindow("haarX", cv::WINDOW_AUTOSIZE);
       cv::imshow("haarX", haarMatX);
       cv::namedWindow("haarY", cv::WINDOW_AUTOSIZE);
@@ -493,7 +493,7 @@ void Surf::getOrientationGlobal(IplImage* int_con, const int init_sample)
           //std::cout<<"x: "<<x*s*2<<"\ty: "<<y*s*2<<std::endl;
         }
       }
-      std::cout<<"scale: "<<s*sfactor<<std::endl;
+      //std::cout<<"scale: "<<s*sfactor<<std::endl;
       cv::namedWindow("haarX", cv::WINDOW_AUTOSIZE);
       cv::imshow("haarX", haarMatX);
       cv::namedWindow("haarY", cv::WINDOW_AUTOSIZE);
@@ -552,7 +552,7 @@ void Surf::getOrientationGlobal(IplImage* int_con, const int init_sample)
     
     sumScaleXs+=maxSumX;
     sumScaleYs+=maxSumY;
-    std::cout<<" Image orientation is: "<<orientation<<" at scale "<<scale<<"\n"<<std::endl;
+    //std::cout<<" Image orientation is: "<<orientation<<" at scale "<<scale<<"\n"<<std::endl;
 
 //    orientation = getAngle(totX,totY);
 
@@ -565,7 +565,7 @@ void Surf::getOrientationGlobal(IplImage* int_con, const int init_sample)
   oris[-1] = sumScaleOris/(1+NUMSCALES);
   oris[-1] = getAngle(sumScaleXs,sumScaleYs);
 
-  std::cout<<"Total orientation: "<<oris[-1]<<std::endl;
+  //std::cout<<"Total orientation: "<<oris[-1]<<std::endl;
   ipt->orientation = oris[-1];
 }
 
