@@ -90,12 +90,15 @@ cv::Mat locsToBool(vector<PixelLoc> contourPixels, cv::Mat img, int pixelBuffer 
 	// iterate over boolMat and find pits
 	for(int i=x1-pixelBuffer; i<= x2+pixelBuffer; i++){
 		for(int j = y1-pixelBuffer; j <= y2+pixelBuffer; j++){
-			// check if pixel is already part of contour
-			if ( boolMat.at<cv::Vec3b>(i,j)[0]!=1 && boolMat.at<cv::Vec3b>(i,j)[1]!=1 && boolMat.at<cv::Vec3b>(i,j)[2]!=1) {
-				// if it isn't then check that it has 2 or more neighbors
-				if (pixelNeighbors(i,j,boolMat)) {
-					// if it has 2 or more neighbors then it belongs in the contour
-					boolMat.at<cv::Vec3b>(contourPixels[i].y,contourPixels[i].x)[j]=1;
+			// if it's on the edge of matrix check for invalid memory
+			if (boolMat.cols > i+1 && boolMat.rows > j+1 && i >= 1 && j >= 1) {
+				// check if pixel is already part of contour
+				if ( boolMat.at<cv::Vec3b>(i,j)[0]!=1 && boolMat.at<cv::Vec3b>(i,j)[1]!=1 && boolMat.at<cv::Vec3b>(i,j)[2]!=1) {
+					// if it isn't then check that it has 2 or more neighbors
+					if (pixelNeighbors(i,j,boolMat)) {
+						// if it has 2 or more neighbors then it belongs in the contour
+						boolMat.at<cv::Vec3b>(contourPixels[i].y,contourPixels[i].x)[j]=1;
+					}
 				}
 			}
 		}
