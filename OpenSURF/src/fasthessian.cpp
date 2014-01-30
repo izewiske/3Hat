@@ -237,11 +237,19 @@ void FastHessian::buildResponseLayer(ResponseLayer *rl)
       r = ar * step;
       c = ac * step; 
 
+      /*
       //only calculate response layer values for things in the contour
       if (contour!=NULL){
-        if (CV_IMAGE_ELEM(contour, cv::Vec3b, r, c)==cv::Vec3b(0,0,0))
+        //do we need this if? I guess it should not hurt
+        if (CV_IMAGE_ELEM(contour, cv::Vec3b, r, c)==cv::Vec3b(0,0,0)){
+          //TODO: add a way of ignoring these instead
+          responses[index]=0;
+          laplacian[index]=0;
 	  continue;
+        }
         // Compute response components
+        // Issues with zero on BoxIntegrals?
+        
         Dxx =   BoxIntegral(img, r - l + 1, c - b, 2*l - 1, w)
            /BoxIntegral(int_con, r - l + 1, c - b, 2*l - 1, w)*(2*l-1)*w
               - BoxIntegral(img, r - l + 1, c - l / 2, 2*l - 1, l)*3
@@ -261,8 +269,14 @@ void FastHessian::buildResponseLayer(ResponseLayer *rl)
         Dxx /= 255;
         Dyy /= 255;
         Dxy /= 255;
+        if(!std::isfinite(Dxx) || !std::isfinite(Dyy) || !std::isfinite(Dxy)){
+          //TODO: add a way of ignoring these instead
+          responses[index] = 0;
+          laplacian[index] = 0;
+          continue;
+        }
       }
-      else { //not contour-specific
+      else { //not contour-specific */
         // Compute response components
         // TODO: fix for contours (inverse area for each BoxIntegral call)
         Dxx = + BoxIntegral(img, r - l + 1, c - b, 2*l - 1, w)
@@ -273,7 +287,7 @@ void FastHessian::buildResponseLayer(ResponseLayer *rl)
               + BoxIntegral(img, r + 1, c - l, l, l)
               - BoxIntegral(img, r - l, c - l, l, l)
               - BoxIntegral(img, r + 1, c + 1, l, l);
-      }
+      //}
 
       // Normalise the filter responses with respect to their size
       Dxx *= inverse_area;
@@ -304,10 +318,27 @@ int FastHessian::isExtremum(int r, int c, ResponseLayer *t, ResponseLayer *m, Re
   if (r <= layerBorder || r >= t->height - layerBorder || c <= layerBorder || c >= t->width - layerBorder)
     return 0;
 
-  // check the candidate point in the middle layer is above thresh 
-  float candidate = m->getResponse(r, c, t);
-  if (candidate < thresh) 
-    return 0; 
+  float candidate;
+  // in contour?
+  if (contour==NULL){
+    // check the candidate point in the middle layer is above thresh 
+    candidate = m->getResponse(r, c, t);
+    if (candidate < thresh) 
+      return 0; 
+  }
+  else{
+    if (CV_IMAGE_ELEM(contour, cv::Vec3b, r*i_width/t->width, c*i_width/t->width)==cv::Vec3b(1,1,1)){
+      
+      candidate = m->getResponse(r,c,t);
+      if (candidate < thresh)
+        return 0;
+    }
+    //use counter; print # pixels and # in contour
+    else{
+      //CV_IMAGE_ELEM(contour, cv::Vec3b, r*i_width/t->width, c*i_width/t->width)=cv::Vec3b(255,0,0);
+      return 0;
+    }
+  }
 
   if (contour==NULL){
     for (int rr = -1; rr <=1; ++rr)
