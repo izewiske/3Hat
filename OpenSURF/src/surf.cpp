@@ -449,10 +449,10 @@ void Surf::getOrientationGlobal(IplImage* int_con, const int init_sample)
           // calculate wavelet response at this point and scale
           resX[x*w+y] = haarX(x*s*sfactor, y*s*sfactor, sfactor*s);
           totX+=resX[x*w+y];
-            haarMatX.at<unsigned char>(x,y)=resX[x*w+y];
+            haarMatX.at<unsigned char>(x,y)=resX[x*w+y]*255;
           resY[x*w+y] = haarY(x*s*sfactor, y*s*sfactor, sfactor*s);
           totY+=resY[x*w+y];
-            haarMatY.at<unsigned char>(x,y)=resY[x*w+y];
+            haarMatY.at<unsigned char>(x,y)=resY[x*w+y]*255;
           // angle of the gradient (up from x-axis)
           Ang[x*w+y] = getAngle(resX[x*w+y], resY[x*w+y]);
 
@@ -464,7 +464,7 @@ void Surf::getOrientationGlobal(IplImage* int_con, const int init_sample)
       cv::imshow("haarX", haarMatX);
       cv::namedWindow("haarY", cv::WINDOW_AUTOSIZE);
       cv::imshow("haarY", haarMatY);
-      cv::waitKey(0);
+      //cv::waitKey(0);
     }
     else {
       // calculate haar response for the entire image at this scale
@@ -477,12 +477,12 @@ void Surf::getOrientationGlobal(IplImage* int_con, const int init_sample)
           resX[x*w+y] = haarXContour(x*s*sfactor, y*s*sfactor, sfactor*s, int_con);
 	  if (std::isfinite(resX[x*w+y])){
             totX+=resX[x*w+y];
-            haarMatX.at<unsigned char>(x,y)=resX[x*w+y];
+            haarMatX.at<unsigned char>(x,y)=resX[x*w+y]*255;
           }
           resY[x*w+y] = haarYContour(x*s*sfactor, y*s*sfactor, sfactor*s, int_con);
 	  if (std::isfinite(resY[x*w+y])){
             totY+=resY[x*w+y];
-            haarMatY.at<unsigned char>(x,y)=resY[x*w+y];
+            haarMatY.at<unsigned char>(x,y)=resY[x*w+y]*255;
           }
           // angle of the gradient (up from x-axis)
 	  if (std::isfinite(resX[x*w+y]) && std::isfinite(resY[x*w+y]))
@@ -498,7 +498,7 @@ void Surf::getOrientationGlobal(IplImage* int_con, const int init_sample)
       cv::imshow("haarX", haarMatX);
       cv::namedWindow("haarY", cv::WINDOW_AUTOSIZE);
       cv::imshow("haarY", haarMatY);
-      cv::waitKey(0);
+      //cv::waitKey(0);
     }
     //std::cout<<" Angle from totals: "<<getAngle(totX,totY)<<" at scale "<<scale<<std::endl;
 
@@ -562,7 +562,7 @@ void Surf::getOrientationGlobal(IplImage* int_con, const int init_sample)
     
     sumScaleOris += orientation;
   } //calc new orientation
-  oris[-1] = sumScaleOris/(2+NUMSCALES);
+  oris[-1] = sumScaleOris/(1+NUMSCALES);
   oris[-1] = getAngle(sumScaleXs,sumScaleYs);
 
   std::cout<<"Total orientation: "<<oris[-1]<<std::endl;
@@ -576,7 +576,7 @@ void Surf::getOrientationGlobal(IplImage* int_con, const int init_sample)
 //! Weighed, globally-oriented descriptor
 void Surf::getDescriptorGlobal(bool bUpright, IplImage* int_con)
 {
-  int y, x, sample_x, sample_y, count=0;
+  int y, x, sample_x, sample_y, count=0, finitecount=0;
   int i = 0, ix = 0, j = 0, jx = 0, xs = 0, ys = 0;
   float scale, *desc, dx, dy, mdx, mdy, co, si;
   float gauss_s1 = 0.f, gauss_s2 = 0.f;
@@ -603,7 +603,8 @@ void Surf::getDescriptorGlobal(bool bUpright, IplImage* int_con)
   i = -8;
 
   //decide whether to use haar or haarContour
-  if (int_con==NULL){
+  if (true){//int_con==NULL){
+    finitecount = 64; //descriptor is complete
     //Calculate descriptor for this interest point
     while(i < 12)
     {
@@ -725,10 +726,14 @@ void Surf::getDescriptorGlobal(bool bUpright, IplImage* int_con)
             std::cout<<dx*gauss_s2<<" -- "<<dy*gauss_s2<<" -- "<<mdx*gauss_s2<<" -- "<<mdy*gauss_s2<<std::endl;
         */
 
-        if (std::isfinite(dx))
+        if (std::isfinite(dx)){
           len+=(dx*dx+mdx*mdx)*gauss_s2*gauss_s2;
-        if (std::isfinite(dy))
+          finitecount+=2;
+        }
+        if (std::isfinite(dy)){
           len+=(dy*dy+mdy*mdy)*gauss_s2*gauss_s2;
+          finitecount+=2;
+        }
 
         j += 9;
       }
@@ -737,9 +742,11 @@ void Surf::getDescriptorGlobal(bool bUpright, IplImage* int_con)
   }
 
   //Convert to Unit Vector
+  //Assume missing components have average length
+  //(i.e. if 1/3 are missing, normalize rest to length of 2/3)
   len = sqrt(len);
   for(int i = 0; i < 64; ++i)
-    desc[i] /= len;
+    desc[i] *= ((float)finitecount)/(len*64.0f);
 }
 
 //-------------------------------------------------------
@@ -817,9 +824,10 @@ inline float Surf::haarXContour(int row, int column, int s, IplImage* int_con)
   float inverse_plus = 1.f/BoxIntegral(int_con, row-s/2, column, s, s/2);
   float inverse_minus = 1.f/BoxIntegral(int_con, row-s/2, column-s/2, s, s/2);
   //factor of 255 because our bool integral image got converted to float
+  //multiply by s*s/2 to renormalize
   return (BoxIntegral(img, row-s/2, column, s, s/2) * inverse_plus
           -1 * BoxIntegral(img, row-s/2, column-s/2, s, s/2) * inverse_minus)
-          * s*s/255.0;
+          * s*s/510.0;
 }
 
 //-------------------------------------------------------
@@ -830,9 +838,10 @@ inline float Surf::haarYContour(int row, int column, int s, IplImage* int_con)
   float inverse_plus = 1.f/BoxIntegral(int_con, row, column-s/2, s/2, s);
   float inverse_minus = 1.f/BoxIntegral(int_con, row-s/2, column-s/2, s/2, s);
   //factor of 255 because our bool integral image got converted to float
+  //multiply by s*s/2 to renormalize
   return (BoxIntegral(img, row, column-s/2, s/2, s) * inverse_plus
           -1 * BoxIntegral(img, row-s/2, column-s/2, s/2, s) * inverse_minus)
-          * s*s/255.0;
+          * s*s/510.0;
 }
 
 
