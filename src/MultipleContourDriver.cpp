@@ -1,6 +1,6 @@
 /*
 *
-*	This program will load multiple images and process them then determine how well the 
+*	This program will load multiple images and process them then determine how well they work
 *
 */
 #include <vector>
@@ -24,13 +24,6 @@
 #include "eriolHeader.h"
 #include "UtilityFunctions.h"
 #include "ContourMatcherStructs.h"
-
-
-
-std::vector<string> getTileIDS(Image im);
-Plane getFeaturesFromTile(std::string tildID);
-
-
 
 
 Plane matchStrengths(cv::Mat mimg1, cv::Mat mimg2, cv::Mat bools1, cv::Mat bools2) {
@@ -57,9 +50,6 @@ Plane matchStrengths(cv::Mat mimg1, cv::Mat mimg2, cv::Mat bools1, cv::Mat bools
 	IpVec ipts1, ipts2;
 	surfDetDes(img1,ipts1,false,4,4,2,0.0001f,matchGlobalOrientations,b1);
 	surfDetDes(img2,ipts2,false,4,4,2,0.0001f,matchGlobalOrientations,b2);
-
-	drawIpoints(img1, ipts1);
-	drawIpoints(img2, ipts2);
 
 	MatchVec matches;
 	getMatchesSymmetric(ipts1,ipts2,matches,true);
@@ -136,6 +126,31 @@ double compareFeaturePoints(Plane computedPoints, Plane actualPoints){
 	return quality;
 }
 
+std::vector<std::string> getTileIDS(std::string imageID){
+	std::vector<std::string> listOfTileIDs;
+	std::vector<Poly3> polys = loadPolysForImage(imageID);
+	for (int i = 0; i < polys.size(); i++) {
+		listOfTileIDs.push_back(polys[i].id);
+	}
+	return listOfTileIDs;
+}
+
+Plane getUserDefinedPlane(std::string tileID,std::string imageID){
+	// TODO: I don't know if these are ordered in a fashion such that coresponding points have same index
+	std::vector<Coord> leftStandard = getFeaturePoints(tileID,imageID+"L");
+	std::vector<Coord> rightStandard = getFeaturePoints(tileID,imageID+"R");
+	if (leftStandard.size() != rightStandard.size()){
+		std::cerr << "That's odd, the number of points in the right and left images of the gold standard differs. You broke science.\n"
+		exit 0;
+	}
+	Plane actual;
+	for (int i = 0; i < leftStandard.size() ; ++i) {
+		actual.leftImage.push_back(PixelLoc(leftStandard[i].x,leftStandard[i].y));
+		actual.rightImage.push_back(PixelLoc(rightStandard[i].x,rightStandard[i].y));
+	}
+	return actual;
+}
+
 
 int main(int argc, char** argv){
 	if( argc == 1) {
@@ -188,8 +203,10 @@ int main(int argc, char** argv){
 			cv::Mat contourOnly2 = contourMatrix2.mul(contourBools2);
 			// find feature points
 			Plane surfMatches = matchStrengths(contourOnly1, contourOnly2, contourBools1, contourBools2);
+
 			// get actual features from human input 
-			Plane goldStandard = getFeaturesFromTile(tileID);
+			Plane goldStandard = getUserDefinedPlane(tileID,imageID);
+
 			// compare with stats
 			std::cout << "Overall match quality: " << compareFeaturePoints(surfMatches,goldStandard) << ".\n";
 			Plane best = bestPossibleComputedPlane(surfMatches,goldStandard);
