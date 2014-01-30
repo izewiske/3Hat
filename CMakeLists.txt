@@ -20,11 +20,6 @@ endif()
 
 add_definitions(-DUSE_GL)
 
-if(EXISTS "${ROOT}/src/eriolObjs.o" AND "${ROOT}/src/eriolHeader.h")
-else()
-	include_directories(/home/cg/palantir/atp14/src/)
-endif()
-
 add_subdirectory(OpenSURF/src)
 add_subdirectory(src)
 add_subdirectory(test)
