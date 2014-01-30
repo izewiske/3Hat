@@ -9,8 +9,8 @@ target_link_libraries(	TestOnContours
 						${OPENGL_LIBRARIES}
 						${GLUT_LIBRARIES})
 
-add_executable(testdriver SURFTests.cpp)
+add_executable(SurfTestDriver SURFTests.cpp)
 
-target_link_libraries(	testdriver
+target_link_libraries(	SurfTestDriver
     					OSURF-BASE
    						${OpenCV_LIBS})

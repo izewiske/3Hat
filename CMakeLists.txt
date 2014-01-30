@@ -38,6 +38,10 @@ file(	COPY /home/cg/palantir/atp14/src/eriolHeader.h
     	DESTINATION src/)
 endif()
 
+
+file(MAKE_DIRECTORY build)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build)
+
 add_subdirectory(OpenSURF/src)
 add_subdirectory(src)
 add_subdirectory(test)
