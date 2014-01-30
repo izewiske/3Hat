@@ -139,15 +139,6 @@ double compareFeaturePoints(Plane computedPoints, Plane actualPoints){
 	return quality;
 }
 
-std::vector<std::string> getTileIDS(std::string imageID){
-	std::vector<std::string> listOfTileIDs;
-	std::vector<Poly3> polys = loadPolysForImage(imageID);
-	for (int i = 0; i < polys.size(); i++) {
-		listOfTileIDs.push_back(polys[i].id);
-	}
-	return listOfTileIDs;
-}
-
 Plane getUserDefinedPlane(std::string tileID,std::string imageID){
 	// TODO: I don't know if these are ordered in a fashion such that coresponding points have same index
 	std::vector<Coord> leftStandard = getFeaturePoints(tileID,imageID+"L");
@@ -183,7 +174,7 @@ int main(int argc, char** argv){
 				return -1;
 		}
 		//get list of tiles in image pair
-		std::vector<std::string> listOfTiles = getTileIDS(imageID);
+		std::vector<std::string> listOfTiles = getTileIDsForImage(imageID);
 		for(int k = 0; k < listOfTiles.size(); k++) {
 			std::string tileID = listOfTiles[k];
 			std::vector<PixelLoc> pixels1 = getContour(tileID,imageID+"L");
