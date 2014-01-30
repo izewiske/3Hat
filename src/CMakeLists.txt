@@ -1,3 +1,10 @@
 file(GLOB_RECURSE OCV-CMSource *.cpp)
-# temporarily commented out for eriol contour work
-#add_library(OCV-CM ${OCV-CMSource} )
+add_executable(MultiContourDriver MultipleContourDriver.cpp)
+
+include_directories(../OpenSURF/src)
+target_link_libraries	(MultiContourDriver
+						OSURF-BASE
+						${OpenCV_LIBS}
+						${OPENGL_LIBRARIES}
+						${GLUT_LIBRARIES}
+						)
