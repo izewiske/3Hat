@@ -22,7 +22,7 @@ add_definitions(-DUSE_GL)
 
 if(EXISTS "${ROOT}/src/eriolObjs.o" AND "${ROOT}/src/eriolHeader.h")
 else()
-	include_directories("/home/cg/palantir/atp14/src/eriolObjs.o")
+	include_directories(/home/cg/palantir/atp14/src/)
 endif()
 
 add_subdirectory(OpenSURF/src)
