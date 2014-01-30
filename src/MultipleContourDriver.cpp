@@ -26,6 +26,13 @@
 #include "ContourMatcherStructs.h"
 
 
+/*
+ * Approx threshold is the threshold for "close-enough" that is used to allow a perfect left image match and a slightly-off
+ * right image match to still supercede the "best-fit" match approximation.
+ */
+#define APPROX_THRESHOLD 10
+
+
 Plane matchStrengths(cv::Mat mimg1, cv::Mat mimg2, cv::Mat bools1, cv::Mat bools2) {
 	bool matchGlobalOrientations = true;
 	std::cout<<"Running with matchGlobalOrientations = "<<matchGlobalOrientations<<" first."<<std::endl;
@@ -55,9 +62,6 @@ Plane matchStrengths(cv::Mat mimg1, cv::Mat mimg2, cv::Mat bools1, cv::Mat bools
 	getMatchesSymmetric(ipts1,ipts2,matches,true);
 
 	IpVec mpts1, mpts2;
-
-	const int & w = img1->width;
-
 	Plane matchesVector;
 
 	for (unsigned int i = 0; i < matches.size(); ++i)	{
@@ -84,18 +88,23 @@ Plane matchStrengths(cv::Mat mimg1, cv::Mat mimg2, cv::Mat bools1, cv::Mat bools
 Plane bestPossibleComputedPlane(Plane computedPoints, Plane actualPoints){ 
 	// determines the best fitting plane computed - best possible scenario
 	Plane bestComputedPlane;
-	for (int j=0; j< actualPoints.size(); j++){
+	for (int j=0; j< actualPoints.leftImage.size(); j++){
 		// for each computed point search for a closest match to actuality
 		int closestMatchIndex = 0;
 		float closestDist = 10000.0;
-		for(int i=0;i< computedPoints.size(); i++){
-			float dist = distance(computedPoints[i].x,computedPoints[i].y,actualPoints[j].x,actualPoints[j].y);
-			if ( dist < closestDist ) {
-				closestDist = dist;
+		for(int i=0;i< computedPoints.leftImage.size(); i++){
+			float distL = distance(computedPoints.leftImage[i].x,computedPoints.leftImage[i].y,actualPoints.leftImage[j].x,actualPoints.leftImage[j].y);
+			float distR = distance(computedPoints.rightImage[i].x,computedPoints.rightImage[i].y,actualPoints.rightImage[j].x,actualPoints.rightImage[j].y);
+			// if the left image point is darn close and the right image point is darn close
+			//if ( distL <= closestDistL + APPROX_THRESHOLD && distR <= closestDistR + APPROX_THRESHOLD ) {
+			// replaced threshold with a notion of average distance from desired
+			if ( ((distL + distR) / 2) < closestDist){
+				closestDist = ((distL + distR) / 2);
 				closestMatchIndex = i;
 			}
 		}
-		bestComputedPlane.push_back(PixelLoc(computedPoints[closestMatchIndex].x,computedPoints[closestMatchIndex].y));
+		bestComputedPlane.leftImage.push_back(PixelLoc(computedPoints.leftImage[closestMatchIndex].x,computedPoints.leftImage[closestMatchIndex].y));
+		bestComputedPlane.rightImage.push_back(PixelLoc(computedPoints.rightImage[closestMatchIndex].x,computedPoints.rightImage[closestMatchIndex].y));
 	}
 	return bestComputedPlane;
 }
@@ -106,15 +115,19 @@ double compareFeaturePoints(Plane computedPoints, Plane actualPoints){
 	// This determines how well the features we have computed match those chosen by humans
 	float sumOfDistances = 0;
 	// TODO: consider using RANSAC here
-	for(int i=0;i< computedPoints.size(); i++){
+	for(int i=0;i< computedPoints.leftImage.size(); i++){
 		// for each computed point search for a closest match to actuality
 		int closestMatchIndex = 0;
 		float closestDist = 10000.0;
-		for (int j=0; j< actualPoints.size(); j++){
-			float dist = distance(computedPoints[i].x,computedPoints[i].y,actualPoints[j].x,actualPoints[j].y);
-			if (dist < closestDist){
-				closestDist = dist;
-				closestMatchIndex = j;
+		for(int j=0; j< actualPoints.leftImage.size(); j++){
+			float distL = distance(computedPoints.leftImage[i].x,computedPoints.leftImage[i].y,actualPoints.leftImage[j].x,actualPoints.leftImage[j].y);
+			float distR = distance(computedPoints.rightImage[i].x,computedPoints.rightImage[i].y,actualPoints.rightImage[j].x,actualPoints.rightImage[j].y);
+			// if the left image point is darn close and the right image point is darn close
+			//if ( distL <= closestDistL + APPROX_THRESHOLD && distR <= closestDistR + APPROX_THRESHOLD ) {
+			// replaced threshold with a notion of average distance from desired
+			if ( ((distL + distR) / 2) < closestDist){
+				closestDist = ((distL + distR) / 2);
+				closestMatchIndex = i;
 			}
 		}
 		sumOfDistances = sumOfDistances + closestDist;
@@ -140,8 +153,8 @@ Plane getUserDefinedPlane(std::string tileID,std::string imageID){
 	std::vector<Coord> leftStandard = getFeaturePoints(tileID,imageID+"L");
 	std::vector<Coord> rightStandard = getFeaturePoints(tileID,imageID+"R");
 	if (leftStandard.size() != rightStandard.size()){
-		std::cerr << "That's odd, the number of points in the right and left images of the gold standard differs. You broke science.\n"
-		exit 0;
+		std::cerr << "That's odd, the number of points in the right and left images of the gold standard differs. You broke science.\n";
+		exit;
 	}
 	Plane actual;
 	for (int i = 0; i < leftStandard.size() ; ++i) {
@@ -155,14 +168,14 @@ Plane getUserDefinedPlane(std::string tileID,std::string imageID){
 int main(int argc, char** argv){
 	if( argc == 1) {
 			// scottt100 1149L 1149R
-		 	std::err <<" Usage: image1ID image2ID ... " << std::endl;
+		 	std::cerr <<" Usage: image1ID image2ID ... " << std::endl;
 		 	return -1;
 		}
 	//loop through images
 	for (int i = 0; i < argc; i++){
 		std::string imageID = argv[i];
-		Image im1(imageID + "L");
-		Image im2(imageID + "R");
+		Image im1( (imageID + "L").c_str());
+		Image im2( (imageID + "R").c_str());
 		cv::Mat image1(im1.getHeight(),im1.getWidth(),CV_8UC3,(void *) im1.getData());
 		cv::Mat image2(im2.getHeight(),im2.getWidth(),CV_8UC3,(void *) im2.getData());
 		if(! image1.data | !image2.data) {
@@ -210,13 +223,13 @@ int main(int argc, char** argv){
 			// compare with stats
 			std::cout << "Overall match quality: " << compareFeaturePoints(surfMatches,goldStandard) << ".\n";
 			Plane best = bestPossibleComputedPlane(surfMatches,goldStandard);
-			std::cout<<"Best possible computed plane:" 
-			for (int j=0; j< best.size(); j++){
-				std::cout << "\t (" << best[j].x << ", " << best[j].y << ")";			
+			std::cout<<"Best possible computed plane:";
+			for (int j=0; j< best.leftImage.size(); j++){
+				std::cout << "\t (" << best.leftImage[j].x << ", " << best.leftImage[j].y << ")->(" << best.rightImage[j].x << ", " << best.rightImage[j].y << ")";			
 			}
-			std::cout<<"\nGold standard plane:" 
-			for (int j=0; j< goldStandard.size(); j++){
-				std::cout << "\t (" << goldStandard[j].x << ", " << goldStandard[j].y << ")";			
+			std::cout<<"\nGold standard plane:" ;
+			for (int j=0; j< goldStandard.leftImage.size(); j++){
+				std::cout << "\t (" << goldStandard.leftImage[j].x << ", " << goldStandard.leftImage[j].y << ")->(" << goldStandard.rightImage[j].x << ", " << goldStandard.rightImage[j].y << ")";		
 			}
 		}
 	}

@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <vector>
-#include "PixelLoc.h"
+#include "eriolHeader.h"
 
 // IO macros for easy redirecting when putting in full application
 #define ERR std::cerr

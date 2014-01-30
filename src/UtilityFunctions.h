@@ -1,7 +1,4 @@
 #include "ContourMatcherStructs.h"
-#include "Contour.h"
-#include "PixelLoc.h"
-#include "Image.h"
 
 #include <unordered_map>
 #include <math.h>
@@ -27,55 +24,31 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/features2d/features2d.hpp>
 #include "opencv2/imgproc/imgproc.hpp"
-#include <opencv2/nonfree/nonfree.hpp>
-#include <opencv2/nonfree/features2d.hpp>
 #include <opencv2/legacy/legacy.hpp>
 
-cv::RotatedRect defineROI(std::vector<PixelLoc> contourPixels){
-	std::vector<cv::Point> contour;
-	//TODO: include boundary margins on region of interest
-	for (int j = 0; j < contourPixels.size(); ++j) {
-		// Makes a Pixel2f
-		cv::Point p(contourPixels[j].x,contourPixels[j].y);
-		//adds it to contour
-		contour.push_back(p);
-	}
-
-	/* 
-	From OpenCV on fitEllipse():
-	The function calculates the ellipse that fits (in a least-squares sense) a set of 2D points best of all. 
-	It returns the rotated rectangle in which the ellipse is inscribed. The algorithm [Fitzgibbon95] is used. 
-
-	!!!
-		NOTE: Developer should keep in mind that it is possible that the returned ellipse/rotatedRect data contains 
-		negative indices, due to the data points being close to the border of the containing Mat element.
-	!!!
-	*/
-	cv::RotatedRect roi = cv::fitEllipse(contour);
-	return roi;
-}
-
-// Takes input from getContour which returns a vector of vector of PixelLoc
-cv::Mat sliceContour(std::vector<PixelLoc> contourPixels,cv::Mat image){
-	cv::RotatedRect roi = defineROI(contourPixels);
-	cv::Point2f vertices[4];
-	roi.points(vertices);
-	cv::Mat_<uchar> slice(image,vertices);
-	return slice;
-}
-
-cv::Mat convertImageToMatrix(Image im){
-	cv::Mat image(im.getHeight(),im.getWidth(),CV_8UC3,(void *) im.getData());
-	return image;
-}
-
-cv::Point getCenterOfROI(Contour contour){
-	cv::RotatedRect	roi = defineROI(contour.getContourBoundary());
-	return roi.center;
-}
+#ifdef NONFREE_ENABLED
+#include <opencv2/nonfree/nonfree.hpp>
+#include <opencv2/nonfree/features2d.hpp>
+#endif
 
 float distance(int x1,int y1, int x2, int y2){
 	return sqrt(pow(x2-x1,2) + pow(y2-y1,2));
+}
+
+cv::Mat locsToBool(vector<PixelLoc> contourPixels, cv::Mat img){
+	cv::Mat boolMat(img.rows,img.cols,CV_8UC3,cvScalar(0,0,0));
+
+        for (unsigned int i=0; i<contourPixels.size(); i++){
+		for (int j=0; j<3; j++){
+			boolMat.at<cv::Vec3b>(contourPixels[i].y,contourPixels[i].x)[j]=1;
+		}
+	}
+	return boolMat;
+}
+
+cv::Point getCenterOfROI(cv::Rect roi){
+	cv::Point center(roi.x + roi.width/2, roi.y + roi.height/2);
+	return center;
 }
 
 
@@ -84,10 +57,29 @@ double calculateColorDifference(double * lab1, double * lab2);
 
 // Determines if a contour has uniform color by calculating the average LAB value for the contour and then 
 // determining the percent of pixels that deviate strongly from that average
-bool contourHasUniformColor(Contour contour,Image image){
-	cv::Mat src = sliceContour(contour.getContourBoundary(),convertImageToMatrix(image));
+bool contourHasUniformColor(std::string tileID,std::string image){
+	Image imgPrime(image.c_str());
+	cv::Mat img(imgPrime.getHeight(),imgPrime.getWidth(),CV_8UC3,(void *) imgPrime.getData());
+	if(! img.data ) {
+				std::cerr <<	"Could not open or find the image (1)\n";
+				return -1;
+	}
+
+	std::vector<PixelLoc> pixels = getContour(tileID,image);
+	std::vector<cv::Point2f> contour;
+    for (int j = 0; j < pixels.size(); ++j) {
+        cv::Point2f p(pixels[j].x,pixels[j].y);
+        contour.push_back(p);
+    }
+ 	cv::Rect roi = cv::boundingRect(contour);
+	cv::Mat slice(img,roi);
+	cv::Mat contourMatrix = slice.clone();
+	cv::Mat bools = locsToBool(pixels,img);
+	cv::Mat sliceB(bools,roi);
+	cv::Mat contourBools = sliceB.clone();
+	cv::Mat contourOnly = contourMatrix.mul(contourBools);
 	cv::Mat c;
-	cv::cvtColor(src, c, CV_BGR2Lab);
+	cv::cvtColor(contourOnly, c, CV_BGR2Lab);
 	//cv::cvtColor(src, c, CV_RGB2HLS);
 	int step = c.step;
 	int channels = c.channels();
@@ -129,10 +121,35 @@ bool contourHasUniformColor(Contour contour,Image image){
 	Called after initial feature detection run with SURF or SIFT to evaluate 
 	the level of texture present in the contour. 
 */
-bool contourIsDifficult(Contour contour,Image image){
-	cv::Mat c = sliceContour(contour.getContourBoundary(),convertImageToMatrix(image));
+bool contourIsDifficult(std::string tileID,std::string image){
+	Image imgPrime(image.c_str());
+	cv::Mat img(imgPrime.getHeight(),imgPrime.getWidth(),CV_8UC3,(void *) imgPrime.getData());
+	if(! img.data ) {
+				std::cerr <<	"Could not open or find the image (1)\n";
+				return -1;
+	}
+
+	std::vector<PixelLoc> pixels = getContour(tileID,image);
+	std::vector<cv::Point2f> contour;
+    for (int j = 0; j < pixels.size(); ++j) {
+        cv::Point2f p(pixels[j].x,pixels[j].y);
+        contour.push_back(p);
+    }
+ 	cv::Rect roi = cv::boundingRect(contour);
+	cv::Mat slice(img,roi);
+	cv::Mat contourMatrix = slice.clone();
+	cv::Mat bools = locsToBool(pixels,img);
+	cv::Mat sliceB(bools,roi);
+	cv::Mat contourBools = sliceB.clone();
+	cv::Mat c = contourMatrix.mul(contourBools);
 	std::vector<cv::KeyPoint> features;
+#ifdef NONFREE_ENABLED
+	std::cerr << "Nonfree is enabled, using the Sift feature detector.\n";
 	cv::SiftFeatureDetector detector;
+#else 
+	std::cerr << "Nonfree is disabled, using the STAR feature detector.\n";
+	cv::StarFeatureDetector detector;
+#endif 
 	detector.detect(c,features);
 
 	// Processing features into map according to weight
@@ -150,7 +167,7 @@ bool contourIsDifficult(Contour contour,Image image){
 		weights.push_back(weight);
 		featureWeightMap[weight].push_back(f);
 	}
-	cv::Point centerPt = getCenterOfROI(contour);
+	cv::Point centerPt = getCenterOfROI(roi);
 
 	bool isDifficult = false;
 	// Determine the top number of weights we want to use
@@ -260,7 +277,7 @@ double calculateColorDifference(double * lab1, double * lab2) {
 	double R_T= -sin(2.0*(30.0*pi/180.0)*exp(- pow(( (180.0/pi*huePrime-275.0)/25.0),2.0)))*R_c;
 
 	// The CIEDE 2000 color difference (double)
-	return sqrt( pow((luminosityDifference/S_l),2.0) + pow((averageAPrime/S_c),2.0) + pow((hueDifference/S_h),2.0) + R_T*(averageAPrime/S_c)*(hueDifference/S_h) );
+	return sqrt( pow((luminosityDifference/S_l),2.0) + pow((primeDifference/S_c),2.0) + pow((hueDifference/S_h),2.0) + R_T*(primeDifference/S_c)*(hueDifference/S_h) );
 }
 
 

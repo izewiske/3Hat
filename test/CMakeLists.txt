@@ -2,7 +2,7 @@ include_directories(../src)
 include_directories(../OpenSURF/src)
 
 
-add_executable(TestOnContours TestOnContours.cpp  eriolObjs.o)
+add_executable(TestOnContours TestOnContours.cpp  ../src/eriolObjs.o)
 target_link_libraries(	TestOnContours
 						OSURF-BASE
 						${OpenCV_LIBS}

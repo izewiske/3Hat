@@ -20,13 +20,19 @@ endif()
 
 add_definitions(-DUSE_GL)
 
-if(EXISTS "${ROOT}/src/eriolObjs.o")
+if("${OpenCV_LIBS}" MATCHES ".*nonfree.*")
+add_definitions(-DNONFREE_ENABLED)
+message(STATUS "OpenCV Non-free module defined.")
+message(STATUS "Non-free functions are enabled.")
+endif()
+
+if(EXISTS src/eriolObjs.o)
 else()
 file(	COPY /home/cg/palantir/atp14/src/eriolObjs.o
     	DESTINATION src/)
 endif()
 
-if(EXISTS "${ROOT}/src/eriolHeader.h")
+if(EXISTS src/eriolHeader.h)
 else()
 file(	COPY /home/cg/palantir/atp14/src/eriolHeader.h
     	DESTINATION src/)
