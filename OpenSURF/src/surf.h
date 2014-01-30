@@ -28,8 +28,8 @@ class Surf {
     Surf(IplImage *img, std::vector<Ipoint> &ipts);
 
     //! Describe all features in the supplied vector
-    void getDescriptors(bool bUpright = false, IplImage* int_con=NULL);
-    void getDescriptorsGlobal(bool bUpright = false, IplImage* int_con=NULL, const int init_sample=INIT_SAMPLE);
+    void getDescriptors(bool bUpright = false, IplImage* int_con=NULL, bool partialFeatures=false);
+    void getDescriptorsGlobal(bool bUpright = false, IplImage* int_con=NULL, bool partialFeatures=false, const int init_sample=INIT_SAMPLE);
 
   private:
     
@@ -42,8 +42,8 @@ class Surf {
     void getOrientationGlobal(IplImage* int_con=NULL, const int init_sample=INIT_SAMPLE);
 
     //! Get the descriptor. See Agrawal ECCV 08
-    void getDescriptor(bool bUpright = false, IplImage* int_con=NULL);
-    void getDescriptorGlobal(bool bUpright = false, IplImage* int_con=NULL);
+    void getDescriptor(bool bUpright = false, IplImage* int_con=NULL, bool partial=false);
+    void getDescriptorGlobal(bool bUpright = false, IplImage* int_con=NULL, bool partial=false);
 
     //! Calculate the value of the 2d gaussian at x,y
     inline float gaussian(int x, int y, float sig);

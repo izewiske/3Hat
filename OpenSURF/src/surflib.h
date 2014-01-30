@@ -31,7 +31,8 @@ inline void surfDetDesContour(IplImage *con_img,  /* image to find Ipoints in */
                        int init_sample = INIT_SAMPLE, /* initial sampling step */
                        float thres = THRES, /* blob response threshold */
 		       bool global = false, /* run in global orientation mode? */
-		       IplImage* contour = NULL)
+		       IplImage* contour = NULL,
+                       bool partialFeatures = false)
 {
   // Create integral-image representation of the image
   IplImage *int_img = Integral(con_img);
@@ -54,9 +55,9 @@ inline void surfDetDesContour(IplImage *con_img,  /* image to find Ipoints in */
 
   // Extract the descriptors for the ipts
   if (global)
-    des.getDescriptorsGlobal(upright, int_con);
+    des.getDescriptorsGlobal(upright, int_con, partialFeatures);
   else
-    des.getDescriptors(upright, int_con);
+    des.getDescriptors(upright, int_con, partialFeatures);
 
   // Deallocate the integral images
   cvReleaseImage(&int_img);

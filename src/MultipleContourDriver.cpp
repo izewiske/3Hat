@@ -24,6 +24,7 @@
 #include "eriolHeader.h"
 #include "UtilityFunctions.h"
 #include "ContourMatcherStructs.h"
+#include "GetMatchesSURF.h"
 
 
 /*
