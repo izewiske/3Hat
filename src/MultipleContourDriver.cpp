@@ -35,7 +35,7 @@
 
 Plane matchStrengths(cv::Mat mimg1, cv::Mat mimg2, cv::Mat bools1, cv::Mat bools2) {
 	bool matchGlobalOrientations = true;
-	OUT <<"Running with matchGlobalOrientations = "<<matchGlobalOrientations<<" first."<<std::endl;
+	//OUT <<"Running with matchGlobalOrientations = "<<matchGlobalOrientations<<" first."<<std::endl;
 
 	// Make images as Mats; convert to IplImage for OpenSURF library actions
 	cv::Mat mc1 = mimg1.clone();
@@ -178,9 +178,18 @@ int main(int argc, char** argv){
 				return -1;
 		}
 		//get list of tiles in image pair
-		std::vector<std::string> listOfTiles = getTileIDsForImage(imageIDL);
-		/*std::vector<std::string> listOfTilesR = getTileIDsForImage(imageIDR);
+		std::vector<std::string> listOfTiles;
+		std::vector<std::string> listOfTilesL = getTileIDsForImage(imageIDL);
+		std::vector<std::string> listOfTilesR = getTileIDsForImage(imageIDR);
 		for (int w=0; w<listOfTilesR.size();w++){
+			if(std::find(listOfTilesL.begin(), listOfTilesL.end(), listOfTilesR[w]) != listOfTilesL.end()) {
+	    		listOfTiles.push_back(listOfTilesR[w]);
+			} else {
+			    continue;
+			}
+		}
+
+		/*for (int w=0; w<listOfTilesR.size();w++){
 			listOfTiles.push_back(listOfTilesR[w]);
 		}
 		// make unique list of tiles
