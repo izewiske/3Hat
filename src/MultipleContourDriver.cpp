@@ -188,17 +188,10 @@ int main(int argc, char** argv){
 			    continue;
 			}
 		}
-
-		/*for (int w=0; w<listOfTilesR.size();w++){
-			listOfTiles.push_back(listOfTilesR[w]);
-		}
-		// make unique list of tiles
-		std::sort(listOfTiles.begin(), listOfTiles.end());
-		listOfTiles.erase(std::unique(listOfTiles.begin(), listOfTiles.end()), listOfTiles.end());
-		*/
-		//start that iteration
+		// iterate over set of contours that appear in both images
 		for(int k = 0; k < listOfTiles.size(); k++) {
 			std::string tileID = listOfTiles[k];
+			OUT <<"\n\nTile ID: " << tileID << " which is tile number: " << k+1 << "\n";
 			std::vector<PixelLoc> pixels1 = getContour(tileID,imageIDL);
 			std::vector<PixelLoc> pixels2 = getContour(tileID,imageIDR);
 			std::vector<cv::Point2f> contour1;
