@@ -141,14 +141,14 @@ int main(int argc, char** argv){
 		// iterate over set of contours that appear in both images
 		for(int k = 0; k < listOfTiles.size(); k++) {
 			std::string tileID = listOfTiles[k];
-			OUT <<"\n\nTile ID: " << tileID << " which is tile number: " << k+1 << "\n";
 			std::vector<PixelLoc> pixels1 = getContour(tileID,imageIDL);
 			std::vector<PixelLoc> pixels2 = getContour(tileID,imageIDR);
-			std::vector<cv::Point2f> contour1;
-			OUT << "Image: " << imageID<< "\n";
 			if(pixels1.empty()) continue;
 			if(pixels2.empty()) continue;
+			OUT << "Image: " << imageID<< "\n";
+			OUT <<"\n\nTile ID: " << tileID << " which is tile number: " << k+1 << "\n";
 
+			std::vector<cv::Point2f> contour1;
 	        for (int j = 0; j < pixels1.size(); ++j) {
 				if ( pixels1[j].x > 0 && pixels1[j].y > 0 && pixels1[j].x < image1.cols && pixels1[j].y < image1.rows) {
 	        		cv::Point2f p1(pixels1[j].x,pixels1[j].y);
@@ -157,28 +157,17 @@ int main(int argc, char** argv){
 	        }
 			std::vector<cv::Point2f> contour2;
 	        for (int j = 0; j < pixels2.size(); ++j) {
-				if ( pixels1[j].x > 0 && pixels1[j].y > 0 && pixels1[j].x < image1.cols && pixels1[j].y < image1.rows) {
+				if ( pixels2[j].x > 0 && pixels2[j].y > 0 && pixels2[j].x < image2.cols && pixels2[j].y < image2.rows) {
 	       			cv::Point2f p2(pixels2[j].x,pixels2[j].y);
 	        		contour2.push_back(p2);
 	        	}
 			}
 
-			if(tileID=="103rossing"){
-				OUT << "Sizes: " << contour1.size() << " " << contour2.size() <<"\n";
-				if(!contour1.empty()){
-					for (std::vector<cv::Point2f>::iterator i = contour1.begin(); i != contour1.end(); ++i) {
-						OUT << i->x <<" " << i->y << "\n";
-					}
-				} else {
-					continue;
-				}
-				if(!contour2.empty()){
-					for (std::vector<cv::Point2f>::iterator i = contour2.begin(); i != contour2.end(); ++i) {
-						OUT << i->x <<" " << i->y << "\n";
-					}
-				} else {
-					continue;
-				}
+			if(contour1.empty()){
+				continue;
+			}
+			if(contour2.empty()){
+				continue;
 			}
 	
 	        cv::Rect roi1 = cv::boundingRect(contour1);
@@ -215,18 +204,18 @@ int main(int argc, char** argv){
 			// compare with stats
 			OUT  << "Overall (all enabled) match quality: " << compareFeaturePoints(surfMatches,goldStandard) << ".\n";
 		
-			surfMatches = matchStrengthsSimpleBoundsInContour(true,contourOnly1, contourOnly2, contourBools1, contourBools2);
-			// compare with stats
-			OUT  << "Overall (no partial) match quality: " << compareFeaturePoints(surfMatches,goldStandard) << ".\n";
+			// surfMatches = matchStrengthsSimpleBoundsInContour(true,contourOnly1, contourOnly2, contourBools1, contourBools2);
+			// // compare with stats
+			// OUT  << "Overall (no partial) match quality: " << compareFeaturePoints(surfMatches,goldStandard) << ".\n";
 	
-			surfMatches = matchStrengthsSimpleBoundsInContour(false,contourOnly1, contourOnly2, contourBools1, contourBools2);
-			// compare with stats
-			OUT  << "Overall (local) match quality: " << compareFeaturePoints(surfMatches,goldStandard) << ".\n";
+			// surfMatches = matchStrengthsSimpleBoundsInContour(false,contourOnly1, contourOnly2, contourBools1, contourBools2);
+			// // compare with stats
+			// OUT  << "Overall (local) match quality: " << compareFeaturePoints(surfMatches,goldStandard) << ".\n";
 
-			surfMatches = matchStrengthsSimpleBoundsInContour(false,contourMatrix1, contourMatrix2, contourBools1, contourBools2);
-			// compare with stats
-			OUT  << "Overall (local, full image) match quality: " << compareFeaturePoints(surfMatches,goldStandard) << ".\n";
-			
+			// surfMatches = matchStrengthsSimpleBoundsInContour(false,contourMatrix1, contourMatrix2, contourBools1, contourBools2);
+			// // compare with stats
+			// OUT  << "Overall (local, full image) match quality: " << compareFeaturePoints(surfMatches,goldStandard) << ".\n";
+
 			// matching fewer than three points is useless.
 			if (surfMatches.leftImage.size() < 3 || surfMatches.rightImage.size() < 3) {
 				//OUT << "Tile: " << tileID << " does not have any strong SURF features. Consider alternative methods.\n";
