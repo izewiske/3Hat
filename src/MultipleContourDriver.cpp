@@ -32,7 +32,7 @@
  * right image match to still supercede the "best-fit" match approximation.
  */
 #define APPROX_THRESHOLD 10
-
+#define _HESSIAN_THRESH 15
 // function finds the best possible plane we could have computed with a series of points 
 Plane bestPossibleComputedPlane(Plane computedPoints, Plane actualPoints){ 
 	// determines the best fitting plane computed - best possible scenario
@@ -115,6 +115,7 @@ int main(int argc, char** argv){
 		}
 	//loop through images
 	for (int i = 1; i < argc; i++){
+		try {
 		std::string imageID = argv[i];
 		std::string imageIDL = imageID + "L";
 		std::string imageIDR = imageID + "R";
@@ -144,30 +145,44 @@ int main(int argc, char** argv){
 			std::vector<PixelLoc> pixels1 = getContour(tileID,imageIDL);
 			std::vector<PixelLoc> pixels2 = getContour(tileID,imageIDR);
 			std::vector<cv::Point2f> contour1;
+		OUT << "Image: " << imageID<< "\n";
+		if(pixels1.size()==0) continue;
+		if(pixels2.size()==0) continue;
+
 	        for (int j = 0; j < pixels1.size(); ++j) {
-	        	cv::Point2f p1(pixels1[j].x,pixels1[j].y);
-	        	contour1.push_back(p1);
+			if ( pixels1[j].x > 0 && pixels1[j].y > 0 && pixels1[j].x < image1.cols && pixels1[j].y < image1.rows) {
+	        		cv::Point2f p1(pixels1[j].x,pixels1[j].y);
+	        		contour1.push_back(p1);
+			}
 	        }
 			std::vector<cv::Point2f> contour2;
 	        for (int j = 0; j < pixels2.size(); ++j) {
-	       		cv::Point2f p2(pixels2[j].x,pixels2[j].y);
-	        	contour2.push_back(p2);
-	        }
-
+			if ( pixels1[j].x > 0 && pixels1[j].y > 0 && pixels1[j].x < image1.cols && pixels1[j].y < image1.rows) {
+	       			cv::Point2f p2(pixels2[j].x,pixels2[j].y);
+	        		contour2.push_back(p2);
+	        	}
+		}
+	
 	        cv::Rect roi1 = cv::boundingRect(contour1);
 			cv::Mat slice1(image1,roi1);
-			OUT <<"Slice 1: "<<slice1.rows << " "<<slice1.cols << "\n";
-			cv::Mat contourMatrix1 = slice1.clone();
-			//OUT << "Got to locsToBool\n";
-			cv::Mat bools1 = locsToBool(pixels1,image1);
-			//OUT << "Got passed locsToBool\n";
-			cv::Mat sliceB1(bools1,roi1);
-			cv::Mat contourBools1 = sliceB1.clone();
-			cv::Mat contourOnly1 = contourMatrix1.mul(contourBools1);
+			//OUT <<"Slice 1: "<<slice1.rows << " "<<slice1.cols << "\n";
 
 			cv::Rect roi2 = cv::boundingRect(contour2);
 			cv::Mat slice2(image2,roi2);
-			OUT <<"Slice 2: "<<slice2.rows << " "<<slice2.cols << "\n";
+			//OUT <<"Slice 2: "<<slice2.rows << " "<<slice2.cols << "\n";
+			if(slice1.rows <= _HESSIAN_THRESH || slice2.rows<=_HESSIAN_THRESH || slice1.cols <= _HESSIAN_THRESH || slice2.cols <= _HESSIAN_THRESH){
+                                ERR << "Tile: " << tileID << " is too small for a Hessian matrix.\n";
+                                continue;
+                        }		
+			 cv::Mat contourMatrix1 = slice1.clone();
+                        //OUT << "Got to locsToBool\n";
+                        cv::Mat bools1 = locsToBool(pixels1,image1);
+                        //OUT << "Got passed locsToBool\n";
+                        cv::Mat sliceB1(bools1,roi1);
+                        cv::Mat contourBools1 = sliceB1.clone();
+                        cv::Mat contourOnly1 = contourMatrix1.mul(contourBools1);
+
+
 			cv::Mat contourMatrix2 = slice2.clone();
 			cv::Mat bools2 = locsToBool(pixels2,image2);
 			cv::Mat sliceB2(bools2,roi2);
@@ -175,7 +190,8 @@ int main(int argc, char** argv){
 			cv::Mat contourOnly2 = contourMatrix2.mul(contourBools2);
 			// find feature points
 			Plane surfMatches = matchStrengthsContour(true,contourOnly1, contourOnly2, contourBools1, contourBools2,true);
-
+				
+			
 			// get actual features from human input 
 			Plane goldStandard = getUserDefinedPlane(tileID,imageID);
 
@@ -195,6 +211,10 @@ int main(int argc, char** argv){
 			for (int j=0; j< goldStandard.leftImage.size(); j++){
 				OUT  << "\t (" << goldStandard.leftImage[j].x << ", " << goldStandard.leftImage[j].y << ")->(" << goldStandard.rightImage[j].x << ", " << goldStandard.rightImage[j].y << ")";		
 			}
+		}
+		} catch (int e) {
+			ERR << "An unknown error occured. Probably with some negative in index in OpenCV because they haunt my dreams.\n";
+			continue;
 		}
 	}
 	return 0;

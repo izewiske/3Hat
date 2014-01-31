@@ -1,5 +1,5 @@
 #include "ContourMatcherStructs.h"
-
+#include "eriolHeader.h"
 #include <unordered_map>
 #include <math.h>
 
@@ -136,7 +136,7 @@ bool contourHasUniformColor(std::string tileID,std::string image){
 				return -1;
 	}
 
-	std::vector<PixelLoc> pixels = getContour(tileID,image);
+	std::vector<PixelLoc> pixels = getContour(tileID,image,true);
 	std::vector<cv::Point2f> contour;
     for (int j = 0; j < pixels.size(); ++j) {
         cv::Point2f p(pixels[j].x,pixels[j].y);
