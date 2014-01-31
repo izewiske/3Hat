@@ -14,7 +14,10 @@
    globalOrientation indicates whether we will assign an orientation
      for the contour globally
   
-   there will be no partial features.  */
+   this will run basic OpenSURF on the two input images;
+   orientation can be toggled from local to global;
+   descriptors are not limited to the contours;
+   there will be no partial features */
 Plane matchStrengthsSimpleBounds(bool globalOri, cv::Mat mimg1, cv::Mat mimg2){
   // Copy the images to avoid screwing up other stuff
   cv::Mat mc1 = mimg1.clone();
@@ -58,7 +61,10 @@ Plane matchStrengthsSimpleBounds(bool globalOri, cv::Mat mimg1, cv::Mat mimg2){
    globalOrientation indicates whether we will assign an orientation
      for the contour globally
   
-   there will be no partial features.  */
+   this will run basic SURF on the two input images, but
+   descriptors will be confined to the contours;
+   orientation can be toggled from local to global;
+   there will be no partial features  */
 Plane matchStrengthsSimpleBoundsInContour(bool globalOri, cv::Mat mimg1, cv::Mat mimg2, cv::Mat bools1, cv::Mat bools2){
   // Copy the images to avoid screwing up other stuff
   cv::Mat mc1 = mimg1.clone();
@@ -117,7 +123,11 @@ Plane matchStrengthsSimpleBoundsInContour(bool globalOri, cv::Mat mimg1, cv::Mat
    globalOrientation indicates whether we will assign an orientation
      for the contour globally
   
-   there will be no partial features.  */
+   this will run contour-only SURF;
+   pixels not in the contour will be ignored;
+   orientation can be toggled from local to global;
+   descriptors will be confined to the contours;
+   there will be partial features.  */
 Plane matchStrengthsContour(bool globalOri, cv::Mat cimg1, cv::Mat cimg2, cv::Mat bools1, cv::Mat bools2, bool partialFeatureAdjust=true){
   // Copy the images to avoid screwing up other stuff
   cv::Mat mc1 = cimg1.clone();
