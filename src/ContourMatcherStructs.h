@@ -1,9 +1,9 @@
-#include <iostream>
-#include <vector>
-#include "PixelLoc.h"
-
 #ifndef __CONTOUR_MATCHER_STRUCTS__
 #define __CONTOUR_MATCHER_STRUCTS__
+
+#include <iostream>
+#include <vector>
+#include "eriolHeader.h"
 
 // IO macros for easy redirecting when putting in full application
 #define ERR std::cerr

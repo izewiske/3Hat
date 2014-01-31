@@ -15,8 +15,10 @@
 #include <cv.h>
 #include "ipoint.h"
 #include "integral.h"
+#include "fasthessian.h"
 
 #include <vector>
+#include <unordered_map>
 
 class Surf {
   
@@ -26,17 +28,22 @@ class Surf {
     Surf(IplImage *img, std::vector<Ipoint> &ipts);
 
     //! Describe all features in the supplied vector
-    void getDescriptors(bool bUpright = false);
-  
+    void getDescriptors(bool bUpright = false, IplImage* int_con=NULL, bool partialFeatures=false);
+    void getDescriptorsGlobal(bool bUpright = false, IplImage* int_con=NULL, bool partialFeatures=false, const int init_sample=INIT_SAMPLE);
+
   private:
     
     //---------------- Private Functions -----------------//
 
     //! Assign the current Ipoint an orientation
-    void getOrientation();
+    void getOrientation(IplImage* int_con=NULL);
     
+    //! Determine global orientation of the image at the given scale
+    void getOrientationGlobal(IplImage* int_con=NULL, const int init_sample=INIT_SAMPLE);
+
     //! Get the descriptor. See Agrawal ECCV 08
-    void getDescriptor(bool bUpright = false);
+    void getDescriptor(bool bUpright = false, IplImage* int_con=NULL, bool partial=false);
+    void getDescriptorGlobal(bool bUpright = false, IplImage* int_con=NULL, bool partial=false);
 
     //! Calculate the value of the 2d gaussian at x,y
     inline float gaussian(int x, int y, float sig);
@@ -45,9 +52,14 @@ class Surf {
     //! Calculate Haar wavelet responses in x and y directions
     inline float haarX(int row, int column, int size);
     inline float haarY(int row, int column, int size);
+    inline float haarXContour(int row, int column, int size, IplImage* int_con);
+    inline float haarYContour(int row, int column, int size, IplImage* int_con);
 
     //! Get the angle from the +ve x-axis of the vector given by [X Y]
     float getAngle(float X, float Y);
+
+    //! Calculate the weight mask for the given offsets and orientation
+    float weightMask(int x, int y, float ori);
 
 
     //---------------- Private Variables -----------------//
@@ -60,6 +72,9 @@ class Surf {
 
     //! Index of current Ipoint in the vector
     int index;
+
+    //! Map of scales to global orientations
+    std::unordered_map<int,float> oris;
 };
 
 

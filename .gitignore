@@ -4,6 +4,7 @@
 *.pyc
 *.swp
 *.exe
+*.stackdump
 .DS_STORE
 CMakeFiles
 CMakeFiles/*
@@ -12,3 +13,4 @@ CMakeCache.txt
 *.cmake
 *.m
 *.jpg
+eriolHeader.h

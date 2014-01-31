@@ -19,8 +19,6 @@
 #include "responselayer.h"
 #include "fasthessian.h"
 
-
-
 using namespace std;
 
 //-------------------------------------------------------
@@ -28,11 +26,17 @@ using namespace std;
 //! Constructor without image
 FastHessian::FastHessian(std::vector<Ipoint> &ipts, 
                          const int octaves, const int intervals, const int init_sample, 
-                         const float thresh) 
+                         const float thresh, IplImage* contour, IplImage* int_con)
                          : ipts(ipts), i_width(0), i_height(0)
 {
   // Save parameter set
   saveParameters(octaves, intervals, init_sample, thresh);
+  
+  // Set the contour map 
+  setConMap(contour);
+  
+  // Set the contour integral image
+  setConImage(int_con);
 }
 
 //-------------------------------------------------------
@@ -40,7 +44,7 @@ FastHessian::FastHessian(std::vector<Ipoint> &ipts,
 //! Constructor with image
 FastHessian::FastHessian(IplImage *img, std::vector<Ipoint> &ipts, 
                          const int octaves, const int intervals, const int init_sample, 
-                         const float thresh) 
+                         const float thresh, IplImage* contour, IplImage* int_con)
                          : ipts(ipts), i_width(0), i_height(0)
 {
   // Save parameter set
@@ -48,6 +52,12 @@ FastHessian::FastHessian(IplImage *img, std::vector<Ipoint> &ipts,
 
   // Set the current image
   setIntImage(img);
+
+  // Set the contour map 
+  setConMap(contour);
+  
+  // Set the contour integral image
+  setConImage(int_con);
 }
 
 //-------------------------------------------------------
@@ -76,6 +86,23 @@ void FastHessian::saveParameters(const int octaves, const int intervals,
   this->thresh = (thresh >= 0 ? thresh : THRES);
 }
 
+//-------------------------------------------------------
+
+//! Set or re-set the contour map source
+void FastHessian::setConMap(IplImage *contour)
+{
+  // Change the source image
+  this->contour = contour;
+}
+
+//-------------------------------------------------------
+
+//! Set or re-set the contour integral image source
+void FastHessian::setConImage(IplImage *int_con)
+{
+  // Change the source image
+  this->int_con = int_con;
+}
 
 //-------------------------------------------------------
 
@@ -210,15 +237,57 @@ void FastHessian::buildResponseLayer(ResponseLayer *rl)
       r = ar * step;
       c = ac * step; 
 
-      // Compute response components
-      Dxx = BoxIntegral(img, r - l + 1, c - b, 2*l - 1, w)
-          - BoxIntegral(img, r - l + 1, c - l / 2, 2*l - 1, l)*3;
-      Dyy = BoxIntegral(img, r - b, c - l + 1, w, 2*l - 1)
-          - BoxIntegral(img, r - l / 2, c - l + 1, l, 2*l - 1)*3;
-      Dxy = + BoxIntegral(img, r - l, c + 1, l, l)
-            + BoxIntegral(img, r + 1, c - l, l, l)
-            - BoxIntegral(img, r - l, c - l, l, l)
-            - BoxIntegral(img, r + 1, c + 1, l, l);
+      /*
+      //only calculate response layer values for things in the contour
+      if (contour!=NULL){
+        //do we need this if? I guess it should not hurt
+        if (CV_IMAGE_ELEM(contour, cv::Vec3b, r, c)==cv::Vec3b(0,0,0)){
+          //TODO: add a way of ignoring these instead
+          responses[index]=0;
+          laplacian[index]=0;
+	  continue;
+        }
+        // Compute response components
+        // Issues with zero on BoxIntegrals?
+        
+        Dxx =   BoxIntegral(img, r - l + 1, c - b, 2*l - 1, w)
+           /BoxIntegral(int_con, r - l + 1, c - b, 2*l - 1, w)*(2*l-1)*w
+              - BoxIntegral(img, r - l + 1, c - l / 2, 2*l - 1, l)*3
+           /BoxIntegral(int_con, r - l + 1, c - l / 2, 2*l - 1, l)*(2*l-1)*l;
+        Dyy =   BoxIntegral(img, r - b, c - l + 1, w, 2*l - 1)
+           /BoxIntegral(int_con, r - b, c - l + 1, w, 2*l - 1)*w*(2*l-1)
+              - BoxIntegral(img, r - l / 2, c - l + 1, l, 2*l - 1)*3
+           /BoxIntegral(int_con, r - l / 2, c - l + 1, l, 2*l - 1)*l*(2*l-1);
+        Dxy =   BoxIntegral(img, r - l, c + 1, l, l)
+           /BoxIntegral(int_con, r - l, c + 1, l, l)*l*l
+              + BoxIntegral(img, r + 1, c - l, l, l)
+           /BoxIntegral(int_con, r + 1, c - l, l, l)*l*l
+              - BoxIntegral(img, r - l, c - l, l, l)
+           /BoxIntegral(int_con, r - l, c - l, l, l)*l*l
+              - BoxIntegral(img, r + 1, c + 1, l, l)
+           /BoxIntegral(int_con, r + 1, c + 1, l, l)*l*l;
+        Dxx /= 255;
+        Dyy /= 255;
+        Dxy /= 255;
+        if(!std::isfinite(Dxx) || !std::isfinite(Dyy) || !std::isfinite(Dxy)){
+          //TODO: add a way of ignoring these instead
+          responses[index] = 0;
+          laplacian[index] = 0;
+          continue;
+        }
+      }
+      else { //not contour-specific */
+        // Compute response components
+        // TODO: fix for contours (inverse area for each BoxIntegral call)
+        Dxx = + BoxIntegral(img, r - l + 1, c - b, 2*l - 1, w)
+              - BoxIntegral(img, r - l + 1, c - l / 2, 2*l - 1, l)*3;
+        Dyy = + BoxIntegral(img, r - b, c - l + 1, w, 2*l - 1)
+              - BoxIntegral(img, r - l / 2, c - l + 1, l, 2*l - 1)*3;
+        Dxy = + BoxIntegral(img, r - l, c + 1, l, l)
+              + BoxIntegral(img, r + 1, c - l, l, l)
+              - BoxIntegral(img, r - l, c - l, l, l)
+              - BoxIntegral(img, r + 1, c + 1, l, l);
+      //}
 
       // Normalise the filter responses with respect to their size
       Dxx *= inverse_area;
@@ -226,6 +295,7 @@ void FastHessian::buildResponseLayer(ResponseLayer *rl)
       Dxy *= inverse_area;
      
       // Get the determinant of hessian response & laplacian sign
+      // TODO: Are indices correct for contours?
       responses[index] = (Dxx * Dyy - 0.81f * Dxy * Dxy);
       laplacian[index] = (Dxx + Dyy >= 0 ? 1 : 0);
 
@@ -237,62 +307,7 @@ void FastHessian::buildResponseLayer(ResponseLayer *rl)
   }
 }
 
-//-------------------------------------------------------
-
-//! Calculate DoH responses for supplied layer
-void FastHessian::buildResponseLayerInContour(ResponseLayer *rl, ContourMat* con)
-{
-  float *responses = rl->responses;         // response storage
-  unsigned char *laplacian = rl->laplacian; // laplacian sign storage
-  int step = rl->step;                      // step size for this filter
-  int b = (rl->filter - 1) / 2;             // border for this filter
-  int l = rl->filter / 3;                   // lobe for this filter (filter size / 3)
-  int w = rl->filter;                       // filter size
-  float Dxx, Dyy, Dxy, inverse_area;
-
-  for(int r, c, ar = 0, index = 0; ar < rl->height; ++ar) 
-  {
-    for(int ac = 0; ac < rl->width; ++ac, index++) 
-    {
-      // get the image coordinates
-      r = ar * step;
-      c = ac * step; 
-
-      // if the point is not in the contour, ignore it; it's value will never be used
-      // do we want to assign some dummy value that makes clear its status instead?
-      if(!con->inContour(r,c,rl))
-        continue;
-
-      // Compute area of the above box filters that is within the contour
-      inverse_area = BoxIntegral(conMap, r - b, c - b, w, w);
-
-      // Compute response components for things within the contour
-      Dxx = BoxIntegral(imgCon, r - l + 1, c - b, 2*l - 1, w)
-          - BoxIntegral(imgCon, r - l + 1, c - l / 2, 2*l - 1, l)*3;
-      Dyy = BoxIntegral(imgCon, r - b, c - l + 1, w, 2*l - 1)
-          - BoxIntegral(imgCon, r - l / 2, c - l + 1, l, 2*l - 1)*3;
-      Dxy = BoxIntegral(imgCon, r - l, c + 1, l, l)
-          + BoxIntegral(imgCon, r + 1, c - l, l, l)
-          - BoxIntegral(imgCon, r - l, c - l, l, l)
-          - BoxIntegral(imgCon, r + 1, c + 1, l, l);
-
-      // Normalise the filter responses with respect to their size
-      Dxx *= inverse_area;
-      Dyy *= inverse_area;
-      Dxy *= inverse_area;
-     
-      // Get the determinant of hessian response & laplacian sign
-      responses[index] = (Dxx * Dyy - 0.81f * Dxy * Dxy);
-      laplacian[index] = (Dxx + Dyy >= 0 ? 1 : 0);
-
-#ifdef RL_DEBUG
-      // create list of the image coords for each response
-      rl->coords.push_back(std::make_pair<int,int>(r,c));
-#endif
-    }
-  }
-}
-  
+ 
 //-------------------------------------------------------
 
 //! Non Maximal Suppression function
@@ -303,68 +318,64 @@ int FastHessian::isExtremum(int r, int c, ResponseLayer *t, ResponseLayer *m, Re
   if (r <= layerBorder || r >= t->height - layerBorder || c <= layerBorder || c >= t->width - layerBorder)
     return 0;
 
-  // check the candidate point in the middle layer is above thresh 
-  float candidate = m->getResponse(r, c, t);
-  if (candidate < thresh) 
-    return 0; 
-
-  for (int rr = -1; rr <=1; ++rr)
-  {
-    for (int cc = -1; cc <=1; ++cc)
-    {
-      // if any response in 3x3x3 is greater candidate not maximum
-      if (
-        t->getResponse(r+rr, c+cc) >= candidate ||
-        ((rr != 0 || cc != 0) && m->getResponse(r+rr, c+cc, t) >= candidate) ||
-        b->getResponse(r+rr, c+cc, t) >= candidate
-        ) 
+  float candidate;
+  // in contour?
+  if (contour==NULL){
+    // check the candidate point in the middle layer is above thresh 
+    candidate = m->getResponse(r, c, t);
+    if (candidate < thresh) 
+      return 0; 
+  }
+  else{
+    if (CV_IMAGE_ELEM(contour, cv::Vec3b, r*i_width/t->width, c*i_width/t->width)==cv::Vec3b(1,1,1)){
+      
+      candidate = m->getResponse(r,c,t);
+      if (candidate < thresh)
         return 0;
+    }
+    //use counter; print # pixels and # in contour
+    else{
+      //CV_IMAGE_ELEM(contour, cv::Vec3b, r*i_width/t->width, c*i_width/t->width)=cv::Vec3b(255,0,0);
+      return 0;
+    }
+  }
+
+  if (contour==NULL){
+    for (int rr = -1; rr <=1; ++rr)
+    {
+      for (int cc = -1; cc <=1; ++cc)
+      {
+        // if any response in 3x3x3 is greater candidate not maximum
+        if (
+          t->getResponse(r+rr, c+cc) >= candidate ||
+          ((rr != 0 || cc != 0) && m->getResponse(r+rr, c+cc, t) >= candidate) ||
+          b->getResponse(r+rr, c+cc, t) >= candidate
+          ) 
+          return 0;
+      }
+    }
+  }
+  else { // search in contour only
+    for (int rr = -1; rr <=1; ++rr)
+    {
+      for (int cc = -1; cc <=1; ++cc)
+      {
+        // are we in the contour?
+        if (CV_IMAGE_ELEM(contour, cv::Vec3b, (r+rr)*i_width/t->width, (c+cc)*i_width/t->width)==cv::Vec3b(1,1,1))
+          // if any response in 3x3x3 is greater candidate not maximum
+          if (
+            t->getResponse(r+rr, c+cc) >= candidate ||
+            ((rr != 0 || cc != 0) && m->getResponse(r+rr, c+cc, t) >= candidate) ||
+            b->getResponse(r+rr, c+cc, t) >= candidate
+            ) 
+            return 0;
+      }
     }
   }
 
   return 1;
 }
   
-//-------------------------------------------------------
-
-//! Non Maximal Suppression function
-int FastHessian::isExtremumInContour(int r, int c, ResponseLayer *t, ResponseLayer *m, ResponseLayer *b, ContourMat* con)
-{
-  // bounds check
-  int layerBorder = (t->filter + 1) / (2 * t->step);
-  if (r <= layerBorder || r >= t->height - layerBorder || c <= layerBorder || c >= t->width - layerBorder)
-    return 0;
-
-  // check that the candidate point is inside the contour
-  if (!con->inContour(r, c, t))
-    return 0;
-
-  // check the candidate point in the middle layer is above thresh 
-  float candidate = m->getResponse(r, c, t);
-  if (candidate < thresh) 
-    return 0; 
-
-  for (int rr = -1; rr <=1; ++rr)
-  {
-    for (int cc = -1; cc <=1; ++cc)
-    {
-      // if any response in 3x3x3 is greater candidate and within contour, not maximum
-      // r+rr is the row IN THE TOP RESPONSE LAYER (sparsest layer)
-      // top response layer has smallest width, largest step and filter
-      if (con->inContour(r+rr,c+cc,t) &&
-          (
-           t->getResponse(r+rr, c+cc) >= candidate ||
-           ((rr != 0 || cc != 0) && m->getResponse(r+rr, c+cc, t) >= candidate) ||
-           b->getResponse(r+rr, c+cc, t) >= candidate
-          )
-	 )
-        return 0;
-    }
-  }
-
-  return 1;
-}
-
 //-------------------------------------------------------
 
 //! Interpolate scale-space extrema to subpixel accuracy to form an image feature.   
@@ -380,34 +391,6 @@ void FastHessian::interpolateExtremum(int r, int c, ResponseLayer *t, ResponseLa
   interpolateStep(r, c, t, m, b, &xi, &xr, &xc );
 
   // If point is sufficiently close to the actual extremum
-  if( fabs( xi ) < 0.5f  &&  fabs( xr ) < 0.5f  &&  fabs( xc ) < 0.5f )
-  {
-    Ipoint ipt;
-    ipt.x = static_cast<float>((c + xc) * t->step);
-    ipt.y = static_cast<float>((r + xr) * t->step);
-    ipt.scale = static_cast<float>((0.1333f) * (m->filter + xi * filterStep));
-    ipt.laplacian = static_cast<int>(m->getLaplacian(r,c,t));
-    ipts.push_back(ipt);
-  }
-}
-
-//-------------------------------------------------------
-
-//! Interpolate scale-space extrema to subpixel accuracy to form an image feature.   
-void FastHessian::interpolateExtremumInContour(int r, int c, ResponseLayer *t, ResponseLayer *m,
-                                               ResponseLayer *b, ContourMat* con)
-{
-  // get the step distance between filters
-  // check the middle filter is mid way between top and bottom
-  int filterStep = (m->filter - b->filter);
-  assert(filterStep > 0 && t->filter - m->filter == m->filter - b->filter);
- 
-  // Get the offsets to the actual location of the extremum
-  double xi = 0, xr = 0, xc = 0;
-  interpolateStepInContour(r, c, t, m, b, &xi, &xr, &xc, con );
-
-  // If point is sufficiently close to the actual extremum
-  // What should we do here?!  It will be very unlikely to find a faux-max sufficient close to the actual max
   if( fabs( xi ) < 0.5f  &&  fabs( xr ) < 0.5f  &&  fabs( xc ) < 0.5f )
   {
     Ipoint ipt;
@@ -446,32 +429,6 @@ void FastHessian::interpolateStep(int r, int c, ResponseLayer *t, ResponseLayer 
 
 //-------------------------------------------------------
 
-//! Performs one step of extremum interpolation. 
-void FastHessian::interpolateStepInContour(int r, int c, ResponseLayer *t, ResponseLayer *m, ResponseLayer *b, 
-                                           double* xi, double* xr, double* xc, ContourMat* con )
-{
-  CvMat* dD, * H, * H_inv, X;
-  double x[3] = { 0 };
-
-  dD = deriv3DInContour( r, c, t, m, b, con );
-  H = hessian3DInContour( r, c, t, m, b, con );
-  H_inv = cvCreateMat( 3, 3, CV_64FC1 );
-  cvInvert( H, H_inv, CV_SVD );
-  cvInitMatHeader( &X, 3, 1, CV_64FC1, x, CV_AUTOSTEP );
-  cvGEMM( H_inv, dD, -1, NULL, 0, &X, 0 );
-
-  cvReleaseMat( &dD );
-  cvReleaseMat( &H );
-  cvReleaseMat( &H_inv );
-
-  *xi = x[2];
-  *xr = x[1];
-  *xc = x[0];
-}
-
-
-//-------------------------------------------------------
-
 //! Computes the partial derivatives in x, y, and scale of a pixel.
 CvMat* FastHessian::deriv3D(int r, int c, ResponseLayer *t, ResponseLayer *m, ResponseLayer *b)
 {
@@ -481,44 +438,7 @@ CvMat* FastHessian::deriv3D(int r, int c, ResponseLayer *t, ResponseLayer *m, Re
   dx = (m->getResponse(r, c + 1, t) - m->getResponse(r, c - 1, t)) / 2.0;
   dy = (m->getResponse(r + 1, c, t) - m->getResponse(r - 1, c, t)) / 2.0;
   ds = (t->getResponse(r, c) - b->getResponse(r, c, t)) / 2.0;
-  
-  dI = cvCreateMat( 3, 1, CV_64FC1 );
-  cvmSet( dI, 0, 0, dx );
-  cvmSet( dI, 1, 0, dy );
-  cvmSet( dI, 2, 0, ds );
 
-  return dI;
-}
-
-//-------------------------------------------------------
-
-//! Computes the partial derivatives in x, y, and scale of a pixel.
-CvMat* FastHessian::deriv3DInContour(int r, int c, ResponseLayer *t, ResponseLayer *m, ResponseLayer *b, ContourMat* con)
-{
-  //assert(con->inContour(r,c,t);
-
-  CvMat* dI;
-  double dx, dy, ds;
-
-  int counter=0;
-
-  dx = 0;
-  if (con->inContour(r, c+1, t)){
-    dx += m->getResponse(r,c+1,t);
-    counter++;
-  }
-  if (con->inContour(r, c-1, t)){
-    dx -= m->getResponse(r, c-1, t);
-    counter++;
-  }
-  if (counter>0)
-    dx /= (double) counter;
-
-
-  dx = (m->getResponse(r, c + 1, t) - m->getResponse(r, c - 1, t)) / 2.0;
-  dy = (m->getResponse(r + 1, c, t) - m->getResponse(r - 1, c, t)) / 2.0;
-  ds = (t->getResponse(r, c) - b->getResponse(r, c, t)) / 2.0;
-  
   dI = cvCreateMat( 3, 1, CV_64FC1 );
   cvmSet( dI, 0, 0, dx );
   cvmSet( dI, 1, 0, dy );
@@ -556,43 +476,7 @@ CvMat* FastHessian::hessian3D(int r, int c, ResponseLayer *t, ResponseLayer *m, 
   cvmSet( H, 2, 0, dxs );
   cvmSet( H, 2, 1, dys );
   cvmSet( H, 2, 2, dss );
-
-  return H;
-}
-
-//-------------------------------------------------------
-
-//! Computes the 3D Hessian matrix for a pixel.
-CvMat* FastHessian::hessian3DInContour(int r, int c, ResponseLayer *t, ResponseLayer *m, ResponseLayer *b,
-                                       ContourMat* con)
-{
-  //assert(con->inContour(r,c,t);
-
-  CvMat* H;
-  double v, dxx, dyy, dss, dxy, dxs, dys;
-
-  v = m->getResponse(r, c, t);
-  dxx = m->getResponse(r, c + 1, t) + m->getResponse(r, c - 1, t) - 2 * v;
-  dyy = m->getResponse(r + 1, c, t) + m->getResponse(r - 1, c, t) - 2 * v;
-  dss = t->getResponse(r, c) + b->getResponse(r, c, t) - 2 * v;
-  dxy = ( m->getResponse(r + 1, c + 1, t) - m->getResponse(r + 1, c - 1, t) - 
-          m->getResponse(r - 1, c + 1, t) + m->getResponse(r - 1, c - 1, t) ) / 4.0;
-  dxs = ( t->getResponse(r, c + 1) - t->getResponse(r, c - 1) - 
-          b->getResponse(r, c + 1, t) + b->getResponse(r, c - 1, t) ) / 4.0;
-  dys = ( t->getResponse(r + 1, c) - t->getResponse(r - 1, c) - 
-          b->getResponse(r + 1, c, t) + b->getResponse(r - 1, c, t) ) / 4.0;
-
-  H = cvCreateMat( 3, 3, CV_64FC1 );
-  cvmSet( H, 0, 0, dxx );
-  cvmSet( H, 0, 1, dxy );
-  cvmSet( H, 0, 2, dxs );
-  cvmSet( H, 1, 0, dxy );
-  cvmSet( H, 1, 1, dyy );
-  cvmSet( H, 1, 2, dys );
-  cvmSet( H, 2, 0, dxs );
-  cvmSet( H, 2, 1, dys );
-  cvmSet( H, 2, 2, dss );
-
+  
   return H;
 }
 

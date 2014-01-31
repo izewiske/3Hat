@@ -1,7 +1,4 @@
 #include "ContourMatcherStructs.h"
-#include "Contour.h"
-#include "PixelLoc.h"
-#include "Image.h"
 
 #include <unordered_map>
 #include <math.h>
@@ -24,61 +21,92 @@
 #define _DISTANCE_THRESHHOLD 200
 #define _WEIGHT_THRESHOLD 0.50
 
-
-
-
 #include <opencv2/opencv.hpp>
 #include <opencv2/features2d/features2d.hpp>
 #include "opencv2/imgproc/imgproc.hpp"
-#include <opencv2/nonfree/nonfree.hpp>
-#include <opencv2/nonfree/features2d.hpp>
 #include <opencv2/legacy/legacy.hpp>
 
-cv::RotatedRect defineROI(std::vector<PixelLoc> contourPixels){
-	std::vector<cv::Point> contour;
-	//TODO: include boundary margins on region of interest
-	for (int j = 0; j < contourPixels.size(); ++j) {
-		// Makes a Pixel2f
-		cv::Point p(contourPixels[j].x,contourPixels[j].y);
-		//adds it to contour
-		contour.push_back(p);
-	}
-
-	/* 
-	From OpenCV on fitEllipse():
-	The function calculates the ellipse that fits (in a least-squares sense) a set of 2D points best of all. 
-	It returns the rotated rectangle in which the ellipse is inscribed. The algorithm [Fitzgibbon95] is used. 
-
-	!!!
-		NOTE: Developer should keep in mind that it is possible that the returned ellipse/rotatedRect data contains 
-		negative indices, due to the data points being close to the border of the containing Mat element.
-	!!!
-	*/
-	cv::RotatedRect roi = cv::fitEllipse(contour);
-	return roi;
-}
-
-// Takes input from getContour which returns a vector of vector of PixelLoc
-cv::Mat sliceContour(std::vector<PixelLoc> contourPixels,cv::Mat image){
-	cv::RotatedRect roi = defineROI(contourPixels);
-	cv::Point2f vertices[4];
-	roi.points(vertices);
-	cv::Mat_<uchar> slice(image,vertices);
-	return slice;
-}
-
-cv::Mat convertImageToMatrix(Image im){
-	cv::Mat image(im.getHeight(),im.getWidth(),CV_8UC3,(void *) im.getData());
-	return image;
-}
-
-cv::Point getCenterOfROI(Contour contour){
-	cv::RotatedRect	roi = defineROI(contour.getContourBoundary());
-	return roi.center;
-}
+#ifdef NONFREE_ENABLED
+#include <opencv2/nonfree/nonfree.hpp>
+#include <opencv2/nonfree/features2d.hpp>
+#endif
 
 float distance(int x1,int y1, int x2, int y2){
 	return sqrt(pow(x2-x1,2) + pow(y2-y1,2));
+}
+
+bool pixelNeighbors(int x, int y, cv::Mat contour){
+	int numNeighbors = 0;
+	// to the left 
+	if (contour.at<cv::Vec3b>(x-1,y)[0]==1 && contour.at<cv::Vec3b>(x-1,y)[1]==1 && contour.at<cv::Vec3b>(x-1,y)[2]==1 ){
+		numNeighbors++;
+	}
+	// to the right
+	if (contour.at<cv::Vec3b>(x+1,y)[0]==1 && contour.at<cv::Vec3b>(x+1,y)[1]==1 && contour.at<cv::Vec3b>(x-1,y)[2]==1 ){
+		numNeighbors++;
+	}
+	// above
+	if (contour.at<cv::Vec3b>(x,y+1)[0]==1 && contour.at<cv::Vec3b>(x,y+1)[1]==1 && contour.at<cv::Vec3b>(x,y+1)[2]==1 ){
+		numNeighbors++;
+	}
+	// below 
+	if (contour.at<cv::Vec3b>(x,y-1)[0]==1 && contour.at<cv::Vec3b>(x,y-1)[1]==1 && contour.at<cv::Vec3b>(x,y-1)[2]==1 ){
+		numNeighbors++;
+	}
+	if (numNeighbors >= 2){
+		return true;
+	} else {
+		return false;
+	}
+}
+
+cv::Mat locsToBool(vector<PixelLoc> contourPixels, cv::Mat img, int pixelBuffer = 3){
+	cv::Mat boolMat(img.rows,img.cols,CV_8UC3,cvScalar(0,0,0));
+	// buffers around edges
+	int x1 = img.cols;
+	int y1 = img.rows;
+	int x2 = 0;
+	int y2 = 0;
+	for(int i =0; i<contourPixels.size(); i++ ){
+		if (contourPixels[i].x > x2) {
+			x2 = contourPixels[i].x;
+		} else if (contourPixels[i].x < x1){
+			x1 = contourPixels[i].x;
+		}
+		if (contourPixels[i].y > y2){
+			y2 = contourPixels[i].y;
+		} else if (contourPixels[i].y < y1 ){
+			y1 = contourPixels[i].y;
+		}
+	}
+	contourPixels.push_back(PixelLoc(x1-pixelBuffer,y1-pixelBuffer));
+	contourPixels.push_back(PixelLoc(x2+pixelBuffer,y2+pixelBuffer));
+
+	for (unsigned int i=0; i<contourPixels.size(); i++){
+		for (int j=0; j<3; j++){
+			boolMat.at<cv::Vec3b>(contourPixels[i].y,contourPixels[i].x)[j]=1;
+		}
+	}
+	// iterate over boolMat and find pits
+	for(int i=x1-pixelBuffer; i<= x2+pixelBuffer; i++){
+		for(int j = y1-pixelBuffer; j <= y2+pixelBuffer; j++){
+			// check if pixel is already part of contour
+			if ( boolMat.at<cv::Vec3b>(i,j)[0]!=1 && boolMat.at<cv::Vec3b>(i,j)[1]!=1 && boolMat.at<cv::Vec3b>(i,j)[2]!=1) {
+				// if it isn't then check that it has 2 or more neighbors
+				if (pixelNeighbors(i,j,boolMat)) {
+					// if it has 2 or more neighbors then it belongs in the contour
+					boolMat.at<cv::Vec3b>(contourPixels[i].y,contourPixels[i].x)[j]=1;
+				}
+			}
+		}
+	}
+
+	return boolMat;
+}
+
+cv::Point getCenterOfROI(cv::Rect roi){
+	cv::Point center(roi.x + roi.width/2, roi.y + roi.height/2);
+	return center;
 }
 
 
@@ -87,10 +115,29 @@ double calculateColorDifference(double * lab1, double * lab2);
 
 // Determines if a contour has uniform color by calculating the average LAB value for the contour and then 
 // determining the percent of pixels that deviate strongly from that average
-bool contourHasUniformColor(Contour contour,Image image){
-	cv::Mat src = sliceContour(contour.getContourBoundary(),convertImageToMatrix(image));
+bool contourHasUniformColor(std::string tileID,std::string image){
+	Image imgPrime(image.c_str());
+	cv::Mat img(imgPrime.getHeight(),imgPrime.getWidth(),CV_8UC3,(void *) imgPrime.getData());
+	if(! img.data ) {
+				ERR <<	"Could not open or find the image (1)\n";
+				return -1;
+	}
+
+	std::vector<PixelLoc> pixels = getContour(tileID,image);
+	std::vector<cv::Point2f> contour;
+    for (int j = 0; j < pixels.size(); ++j) {
+        cv::Point2f p(pixels[j].x,pixels[j].y);
+        contour.push_back(p);
+    }
+ 	cv::Rect roi = cv::boundingRect(contour);
+	cv::Mat slice(img,roi);
+	cv::Mat contourMatrix = slice.clone();
+	cv::Mat bools = locsToBool(pixels,img);
+	cv::Mat sliceB(bools,roi);
+	cv::Mat contourBools = sliceB.clone();
+	cv::Mat contourOnly = contourMatrix.mul(contourBools);
 	cv::Mat c;
-	cv::cvtColor(src, c, CV_BGR2Lab);
+	cv::cvtColor(contourOnly, c, CV_BGR2Lab);
 	//cv::cvtColor(src, c, CV_RGB2HLS);
 	int step = c.step;
 	int channels = c.channels();
@@ -132,10 +179,35 @@ bool contourHasUniformColor(Contour contour,Image image){
 	Called after initial feature detection run with SURF or SIFT to evaluate 
 	the level of texture present in the contour. 
 */
-bool contourIsDifficult(Contour contour,Image image){
-	cv::Mat c = sliceContour(contour.getContourBoundary(),convertImageToMatrix(image));
+bool contourIsDifficult(std::string tileID,std::string image){
+	Image imgPrime(image.c_str());
+	cv::Mat img(imgPrime.getHeight(),imgPrime.getWidth(),CV_8UC3,(void *) imgPrime.getData());
+	if(! img.data ) {
+				ERR <<	"Could not open or find the image (1)\n";
+				return -1;
+	}
+
+	std::vector<PixelLoc> pixels = getContour(tileID,image);
+	std::vector<cv::Point2f> contour;
+    for (int j = 0; j < pixels.size(); ++j) {
+        cv::Point2f p(pixels[j].x,pixels[j].y);
+        contour.push_back(p);
+    }
+ 	cv::Rect roi = cv::boundingRect(contour);
+	cv::Mat slice(img,roi);
+	cv::Mat contourMatrix = slice.clone();
+	cv::Mat bools = locsToBool(pixels,img);
+	cv::Mat sliceB(bools,roi);
+	cv::Mat contourBools = sliceB.clone();
+	cv::Mat c = contourMatrix.mul(contourBools);
 	std::vector<cv::KeyPoint> features;
+#ifdef NONFREE_ENABLED
+	ERR << "Nonfree is enabled, using the Sift feature detector.\n";
 	cv::SiftFeatureDetector detector;
+#else 
+	ERR << "Nonfree is disabled, using the STAR feature detector.\n";
+	cv::StarFeatureDetector detector;
+#endif 
 	detector.detect(c,features);
 
 	// Processing features into map according to weight
@@ -153,7 +225,7 @@ bool contourIsDifficult(Contour contour,Image image){
 		weights.push_back(weight);
 		featureWeightMap[weight].push_back(f);
 	}
-	cv::Point centerPt = getCenterOfROI(contour);
+	cv::Point centerPt = getCenterOfROI(roi);
 
 	bool isDifficult = false;
 	// Determine the top number of weights we want to use
@@ -179,9 +251,7 @@ bool contourIsDifficult(Contour contour,Image image){
 	return isDifficult;
 }
 
-
 #endif //__OPENCV_UTLITY_FUNCTIONS__
-
 
 double calculateColorDifference(double * lab1, double * lab2) {
 	double L1 = lab1[0];
@@ -265,10 +335,8 @@ double calculateColorDifference(double * lab1, double * lab2) {
 	double R_T= -sin(2.0*(30.0*pi/180.0)*exp(- pow(( (180.0/pi*huePrime-275.0)/25.0),2.0)))*R_c;
 
 	// The CIEDE 2000 color difference (double)
-	return sqrt( pow((luminosityDifference/S_l),2.0) + pow((averageAPrime/S_c),2.0) + pow((hueDifference/S_h),2.0) + R_T*(averageAPrime/S_c)*(hueDifference/S_h) );
+	return sqrt( pow((luminosityDifference/S_l),2.0) + pow((primeDifference/S_c),2.0) + pow((hueDifference/S_h),2.0) + R_T*(primeDifference/S_c)*(hueDifference/S_h) );
 }
 
 
 #endif //__UTILITY_FUNCTIONS__
-
-

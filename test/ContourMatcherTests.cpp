@@ -1,3 +1,6 @@
+#ifndef __OCVM_Tests__
+#define __OCVM_Tests__
+
 #include "../src/OpenCVContourMatcher.h"
 #include "../src/UtilityFunctions.h"
 #include <iostream>
@@ -5,8 +8,6 @@
 #include <string>
 #include <exception>
 
-#ifndef __OCVM_Tests__
-#define __OCVM_Tests__
 
 static Plane expected;
 
@@ -26,9 +27,6 @@ bool planeIsAsExpected(Plane p){
 
 
 int main(){
-
-
-
 	try {
 		OUT << "Executing OpenCVContourMatcher test suite..." << "\n";
 		OUT << "Opening test images..." << "\n";

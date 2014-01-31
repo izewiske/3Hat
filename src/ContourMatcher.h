@@ -1,3 +1,6 @@
+#ifndef __CONTOUR_MATCHER__
+#define __CONTOUR_MATCHER__
+
 #include "Image.h"
 #include "PixelLoc.h"
 #include "Contour.h"
@@ -5,8 +8,6 @@
 #include <iostream>
 #include <vector>
 
-#ifndef __CONTOUR_MATCHER__
-#define __CONTOUR_MATCHER__
 class ContourMatcher{
 	public:
 		Plane compare(Contour contour1, Contour contour2, MATCHER_TYPE m);

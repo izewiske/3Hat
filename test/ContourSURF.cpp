@@ -1,5 +1,6 @@
 #include "surflib.h"
 #include "kmeans.h"
+#include "UtilityFunctions.h"
 #include <ctime>
 #include <iostream>
 

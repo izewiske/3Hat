@@ -29,6 +29,7 @@ typedef std::vector<std::pair<std::pair<Ipoint, Ipoint>, float> > MatchVec;
 //! Ipoint operations
 void getMatches(IpVec &ipts1, IpVec &ipts2, IpPairVec &matches);
 void getMatches(IpVec &ipts1, IpVec &ipts2, MatchVec &matches);
+void getMatchesSymmetric(IpVec &ipts1, IpVec &ipts2, MatchVec &matches, bool partial = false);
 int translateCorners(IpPairVec &matches, const CvPoint src_corners[4], CvPoint dst_corners[4]);
 
 //-------------------------------------------------------
@@ -51,13 +52,40 @@ public:
     return sqrt(sum);
   };
 
+  //! Gets the distance in descriptor space between partial Ipoint descriptors
   float partialDistance(const Ipoint &rhs){
-    float sum=0.f;
-    for(int i=0; i < 64; ++i)
-      if (this->descriptor[i]!=FLT_MAX && rhs.descriptor[i]!=FLT_MAX)
-        sum += (this->descriptor[i] - rhs.descriptor[i])*(this->descriptor[i] - rhs.descriptor[i]);
+    std::vector<int> toBeCompared;
+    float sum=0.f, lenthis=0.f, lenrhs=0.f;
+    for(int i=0; i < 64; ++i){
+      if(std::isfinite(this->descriptor[i]) && std::isfinite(rhs.descriptor[i])){
+        toBeCompared.push_back(i);
+        lenthis+=this->descriptor[i]*this->descriptor[i];
+        lenrhs+=rhs.descriptor[i]*rhs.descriptor[i];
+      }
+    }
+    
+    if (toBeCompared.size()==0)
+      return FLT_MAX;
+
+    //normalize and compare
+    lenthis = sqrt(lenthis);
+    lenrhs = sqrt(lenrhs);
+    
+    for (int i=0; i<toBeCompared.size(); i++){
+      int index = toBeCompared[i];
+      sum += (this->descriptor[index]/lenthis - rhs.descriptor[index]/lenrhs)*(this->descriptor[index]/lenthis - rhs.descriptor[index]/lenrhs);
+    }
+    
     return sqrt(sum);
   };
+
+  //! Compares two Ipoints
+  bool operator==(const Ipoint &rhs) const {
+    for (int i=0; i<64; i++)
+      if (this->descriptor[i]!=rhs.descriptor[i])
+        return false;
+    return true;
+  }
 
   //! Coordinates of the detected interest point
   float x, y;

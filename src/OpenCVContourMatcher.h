@@ -1,3 +1,6 @@
+#ifndef __OPENCV_CONTOUR_MATCHER__
+#define __OPENCV_CONTOUR_MATCHER__
+
 #include "ContourMatcher.h"
 #include "ContourMatcherStructs.h"
 #include "ContourMatcherExceptions.h"
@@ -11,9 +14,6 @@
 #include <opencv2/nonfree/features2d.hpp>
 #include <opencv2/legacy/legacy.hpp>
 
-
-#ifndef __OPENCV_CONTOUR_MATCHER__
-#define __OPENCV_CONTOUR_MATCHER__
 class OpenCVContourMatcher : public ContourMatcher {
 	private:
 		double maxDistance;
