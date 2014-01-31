@@ -83,7 +83,6 @@ cv::Mat locsToBool(vector<PixelLoc> contourPixels, cv::Mat img){
 int matchStrengths(cv::Mat mimg1, cv::Mat mimg2, cv::Mat cimg1, cv::Mat cimg2, cv::Mat bools1, cv::Mat bools2)
 {
   bool matchGlobalOrientations = true;
-  std::cout<<"Running with matchGlobalOrientations = "<<matchGlobalOrientations<<" first."<<std::endl;
 
   // Make images as Mats; convert to IplImage for OpenSURF library actions
   cv::Mat mc1 = cimg1.clone();
