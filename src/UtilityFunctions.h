@@ -9,7 +9,7 @@
 
 // Commonly mentioned in literature is a JND of 1.0
 // Mahy et al. (1994) assessed a JND of 2.3 
-#define _COLOUR_DIFFENCE_THRESHOLD 2.3
+#define _COLOUR_DIFFERENCE_THRESHOLD 2.3
 #define _ACCEPTABLE_PERCENTAGE_DEVIANT 0.5
 
 // approximation of pi for use in CIEDE 2000 calculations for color difference
@@ -37,21 +37,37 @@ float distance(int x1,int y1, int x2, int y2){
 
 bool pixelNeighbors(int x, int y, cv::Mat contour){
 	int numNeighbors = 0;
-	// to the left 
-	if (contour.at<cv::Vec3b>(x-1,y)[0]==1 && contour.at<cv::Vec3b>(x-1,y)[1]==1 && contour.at<cv::Vec3b>(x-1,y)[2]==1 ){
-		numNeighbors++;
+	if (x == 828 && y == 540 ){
+			OUT << "Contour - xrange: " << 0 << "-" << contour.cols << " yrange: "<<0<<"-"<<contour.rows << "\n";
+		}
+	if (x >= 1 && x <= contour.cols -1 ){
+		// to the left 
+		if (contour.at<cv::Vec3b>(x-1,y)[0]==1 && contour.at<cv::Vec3b>(x-1,y)[1]==1 && contour.at<cv::Vec3b>(x-1,y)[2]==1 ){
+			numNeighbors++;
+		}
+		// to the right
+		if (contour.at<cv::Vec3b>(x+1,y)[0]==1 && contour.at<cv::Vec3b>(x+1,y)[1]==1 && contour.at<cv::Vec3b>(x-1,y)[2]==1 ){
+			numNeighbors++;
+		}
 	}
-	// to the right
-	if (contour.at<cv::Vec3b>(x+1,y)[0]==1 && contour.at<cv::Vec3b>(x+1,y)[1]==1 && contour.at<cv::Vec3b>(x-1,y)[2]==1 ){
-		numNeighbors++;
+	if (x == 828 && y == 540 ){
+		OUT << "Left and right.\n";
 	}
-	// above
-	if (contour.at<cv::Vec3b>(x,y+1)[0]==1 && contour.at<cv::Vec3b>(x,y+1)[1]==1 && contour.at<cv::Vec3b>(x,y+1)[2]==1 ){
-		numNeighbors++;
-	}
-	// below 
-	if (contour.at<cv::Vec3b>(x,y-1)[0]==1 && contour.at<cv::Vec3b>(x,y-1)[1]==1 && contour.at<cv::Vec3b>(x,y-1)[2]==1 ){
-		numNeighbors++;
+	if (y >= 1 && y <= contour.cols -1 ){
+		// above
+		if (contour.at<cv::Vec3b>(x,y+1)[0]==1 && contour.at<cv::Vec3b>(x,y+1)[1]==1 && contour.at<cv::Vec3b>(x,y+1)[2]==1 ){
+			numNeighbors++;
+		}
+		if (x == 828 && y == 540 ){
+			OUT << "Above.\n";
+		}
+		// below 
+		if (contour.at<cv::Vec3b>(x,y-1)[0]==1 && contour.at<cv::Vec3b>(x,y-1)[1]==1 && contour.at<cv::Vec3b>(x,y-1)[2]==1 ){
+			numNeighbors++;
+		}
+		if (x == 828 && y == 540 ){
+			OUT << "Below.\n";
+		}
 	}
 	if (numNeighbors >= 2){
 		return true;
@@ -62,44 +78,41 @@ bool pixelNeighbors(int x, int y, cv::Mat contour){
 
 cv::Mat locsToBool(vector<PixelLoc> contourPixels, cv::Mat img, int pixelBuffer = 3){
 	cv::Mat boolMat(img.rows,img.cols,CV_8UC3,cvScalar(0,0,0));
-	// buffers around edges
-	int x1 = img.cols;
-	int y1 = img.rows;
-	int x2 = 0;
-	int y2 = 0;
-	for(int i =0; i<contourPixels.size(); i++ ){
-		if (contourPixels[i].x > x2) {
-			x2 = contourPixels[i].x;
-		} else if (contourPixels[i].x < x1){
-			x1 = contourPixels[i].x;
-		}
-		if (contourPixels[i].y > y2){
-			y2 = contourPixels[i].y;
-		} else if (contourPixels[i].y < y1 ){
-			y1 = contourPixels[i].y;
-		}
-	}
-	contourPixels.push_back(PixelLoc(x1-pixelBuffer,y1-pixelBuffer));
-	contourPixels.push_back(PixelLoc(x2+pixelBuffer,y2+pixelBuffer));
+
 
 	for (unsigned int i=0; i<contourPixels.size(); i++){
-		for (int j=0; j<3; j++){
-			boolMat.at<cv::Vec3b>(contourPixels[i].y,contourPixels[i].x)[j]=1;
-		}
-	}
-	// iterate over boolMat and find pits
-	for(int i=x1-pixelBuffer; i<= x2+pixelBuffer; i++){
-		for(int j = y1-pixelBuffer; j <= y2+pixelBuffer; j++){
-			// check if pixel is already part of contour
-			if ( boolMat.at<cv::Vec3b>(i,j)[0]!=1 && boolMat.at<cv::Vec3b>(i,j)[1]!=1 && boolMat.at<cv::Vec3b>(i,j)[2]!=1) {
-				// if it isn't then check that it has 2 or more neighbors
-				if (pixelNeighbors(i,j,boolMat)) {
-					// if it has 2 or more neighbors then it belongs in the contour
-					boolMat.at<cv::Vec3b>(contourPixels[i].y,contourPixels[i].x)[j]=1;
+		for(int k=-pixelBuffer; k<pixelBuffer; k++) {
+			for(int h=-pixelBuffer; h<pixelBuffer;h++){
+				for (int j=0; j<3; j++){
+					if (contourPixels[i].y+h >= 0 && contourPixels[i].y+h < img.rows && contourPixels[i].x+k >= 0 && contourPixels[i].x+k < img.rows) {
+						boolMat.at<cv::Vec3b>(contourPixels[i].y+h,contourPixels[i].x+k)[j]=1;
+					}
 				}
 			}
 		}
 	}
+	/*
+	 *	More preparation of the boolean contour array is possible but not implemented at this time.
+	 */ 
+
+	/*
+	// iterate over boolMat and find pits
+	for(int i=x1-pixelBuffer; i<= x2+pixelBuffer; i++){
+		for(int j = y1-pixelBuffer; j <= y2+pixelBuffer; j++){
+			// if it's on the edge of matrix check for invalid memory
+			if (boolMat.cols > i+1 && boolMat.rows > j+1 && i >= 1 && j >= 1) {
+				// check if pixel is already part of contour
+				if ( boolMat.at<cv::Vec3b>(i,j)[0]!=1 && boolMat.at<cv::Vec3b>(i,j)[1]!=1 && boolMat.at<cv::Vec3b>(i,j)[2]!=1) {
+					// if it isn't then check that it has 2 or more neighbors
+					if (pixelNeighbors(i,j,boolMat)) {
+						// if it has 2 or more neighbors then it belongs in the contour
+						boolMat.at<cv::Vec3b>(contourPixels[i].y,contourPixels[i].x)[j]=1;
+					}
+				}
+			}
+		}
+	}
+	*/
 
 	return boolMat;
 }
@@ -162,7 +175,7 @@ bool contourHasUniformColor(std::string tileID,std::string image){
 	    for (int j = 0; j < c.cols; j++) {
 	    	double pixelLAB[3] = {c.data[step*i + channels*j + 0], c.data[step*i + channels*j + 1], c.data[step*i + channels*j + 2]};
 	    	double contourDifference = calculateColorDifference(pixelLAB,contourAvgLAB);
-	    	if (contourDifference >= _COLOUR_DIFFENCE_THRESHOLD){
+	    	if (contourDifference >= _COLOUR_DIFFERENCE_THRESHOLD){
 	    		totalDeviantPixels++;
 	    	}
     	}
@@ -183,8 +196,13 @@ bool contourIsDifficult(std::string tileID,std::string image){
 	Image imgPrime(image.c_str());
 	cv::Mat img(imgPrime.getHeight(),imgPrime.getWidth(),CV_8UC3,(void *) imgPrime.getData());
 	if(! img.data ) {
+<<<<<<< HEAD
 				ERR <<	"Could not open or find the image (1)\n";
 				return -1;
+=======
+		ERR <<	"Could not open or find the image (1)\n";
+		return -1;
+>>>>>>> multi_driver
 	}
 
 	std::vector<PixelLoc> pixels = getContour(tileID,image);
