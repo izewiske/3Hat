@@ -9,7 +9,7 @@
 
 // Commonly mentioned in literature is a JND of 1.0
 // Mahy et al. (1994) assessed a JND of 2.3 
-#define _COLOUR_DIFFENCE_THRESHOLD 2.3
+#define _COLOUR_DIFFERENCE_THRESHOLD 2.3
 #define _ACCEPTABLE_PERCENTAGE_DEVIANT 0.5
 
 // approximation of pi for use in CIEDE 2000 calculations for color difference
@@ -165,7 +165,7 @@ bool contourHasUniformColor(std::string tileID,std::string image){
 	    for (int j = 0; j < c.cols; j++) {
 	    	double pixelLAB[3] = {c.data[step*i + channels*j + 0], c.data[step*i + channels*j + 1], c.data[step*i + channels*j + 2]};
 	    	double contourDifference = calculateColorDifference(pixelLAB,contourAvgLAB);
-	    	if (contourDifference >= _COLOUR_DIFFENCE_THRESHOLD){
+	    	if (contourDifference >= _COLOUR_DIFFERENCE_THRESHOLD){
 	    		totalDeviantPixels++;
 	    	}
     	}
