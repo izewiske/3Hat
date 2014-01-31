@@ -37,21 +37,37 @@ float distance(int x1,int y1, int x2, int y2){
 
 bool pixelNeighbors(int x, int y, cv::Mat contour){
 	int numNeighbors = 0;
-	// to the left 
-	if (contour.at<cv::Vec3b>(x-1,y)[0]==1 && contour.at<cv::Vec3b>(x-1,y)[1]==1 && contour.at<cv::Vec3b>(x-1,y)[2]==1 ){
-		numNeighbors++;
+	if (x == 828 && y == 540 ){
+			OUT << "Contour - xrange: " << 0 << "-" << contour.cols << " yrange: "<<0<<"-"<<contour.rows << "\n";
+		}
+	if (x >= 1 && x <= contour.cols -1 ){
+		// to the left 
+		if (contour.at<cv::Vec3b>(x-1,y)[0]==1 && contour.at<cv::Vec3b>(x-1,y)[1]==1 && contour.at<cv::Vec3b>(x-1,y)[2]==1 ){
+			numNeighbors++;
+		}
+		// to the right
+		if (contour.at<cv::Vec3b>(x+1,y)[0]==1 && contour.at<cv::Vec3b>(x+1,y)[1]==1 && contour.at<cv::Vec3b>(x-1,y)[2]==1 ){
+			numNeighbors++;
+		}
 	}
-	// to the right
-	if (contour.at<cv::Vec3b>(x+1,y)[0]==1 && contour.at<cv::Vec3b>(x+1,y)[1]==1 && contour.at<cv::Vec3b>(x-1,y)[2]==1 ){
-		numNeighbors++;
+	if (x == 828 && y == 540 ){
+		OUT << "Left and right.\n";
 	}
-	// above
-	if (contour.at<cv::Vec3b>(x,y+1)[0]==1 && contour.at<cv::Vec3b>(x,y+1)[1]==1 && contour.at<cv::Vec3b>(x,y+1)[2]==1 ){
-		numNeighbors++;
-	}
-	// below 
-	if (contour.at<cv::Vec3b>(x,y-1)[0]==1 && contour.at<cv::Vec3b>(x,y-1)[1]==1 && contour.at<cv::Vec3b>(x,y-1)[2]==1 ){
-		numNeighbors++;
+	if (y >= 1 && y <= contour.cols -1 ){
+		// above
+		if (contour.at<cv::Vec3b>(x,y+1)[0]==1 && contour.at<cv::Vec3b>(x,y+1)[1]==1 && contour.at<cv::Vec3b>(x,y+1)[2]==1 ){
+			numNeighbors++;
+		}
+		if (x == 828 && y == 540 ){
+			OUT << "Above.\n";
+		}
+		// below 
+		if (contour.at<cv::Vec3b>(x,y-1)[0]==1 && contour.at<cv::Vec3b>(x,y-1)[1]==1 && contour.at<cv::Vec3b>(x,y-1)[2]==1 ){
+			numNeighbors++;
+		}
+		if (x == 828 && y == 540 ){
+			OUT << "Below.\n";
+		}
 	}
 	if (numNeighbors >= 2){
 		return true;
@@ -186,8 +202,8 @@ bool contourIsDifficult(std::string tileID,std::string image){
 	Image imgPrime(image.c_str());
 	cv::Mat img(imgPrime.getHeight(),imgPrime.getWidth(),CV_8UC3,(void *) imgPrime.getData());
 	if(! img.data ) {
-				ERR <<	"Could not open or find the image (1)\n";
-				return -1;
+		ERR <<	"Could not open or find the image (1)\n";
+		return -1;
 	}
 
 	std::vector<PixelLoc> pixels = getContour(tileID,image);
