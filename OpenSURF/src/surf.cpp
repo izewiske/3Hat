@@ -293,17 +293,10 @@ void Surf::getOrientationGlobal(IplImage* int_con, const int init_sample)
         }
       }
       //std::cout<<"scale: "<<s*sfactor<<std::endl;
-<<<<<<< HEAD
       //cv::namedWindow("haarX", cv::WINDOW_AUTOSIZE);
       //cv::imshow("haarX", haarMatX);
       //cv::namedWindow("haarY", cv::WINDOW_AUTOSIZE);
       //cv::imshow("haarY", haarMatY);
-=======
-      cv::namedWindow("haarX", cv::WINDOW_AUTOSIZE);
-      cv::imshow("haarX", haarMatX);
-      cv::namedWindow("haarY", cv::WINDOW_AUTOSIZE);
-      cv::imshow("haarY", haarMatY);
->>>>>>> multi_driver
       //cv::waitKey(0);
     }
     else {
@@ -334,17 +327,10 @@ void Surf::getOrientationGlobal(IplImage* int_con, const int init_sample)
         }
       }
       //std::cout<<"scale: "<<s*sfactor<<std::endl;
-<<<<<<< HEAD
       //cv::namedWindow("haarX", cv::WINDOW_AUTOSIZE);
       //cv::imshow("haarX", haarMatX);
       //cv::namedWindow("haarY", cv::WINDOW_AUTOSIZE);
       //cv::imshow("haarY", haarMatY);
-=======
-      cv::namedWindow("haarX", cv::WINDOW_AUTOSIZE);
-      cv::imshow("haarX", haarMatX);
-      cv::namedWindow("haarY", cv::WINDOW_AUTOSIZE);
-      cv::imshow("haarY", haarMatY);
->>>>>>> multi_driver
       //cv::waitKey(0);
     }
     //std::cout<<" Angle from totals: "<<getAngle(totX,totY)<<" at scale "<<scale<<std::endl;

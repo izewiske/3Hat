@@ -335,7 +335,6 @@ int FastHessian::isExtremum(int r, int c, ResponseLayer *t, ResponseLayer *m, Re
     }
     //use counter; print # pixels and # in contour
     else{
-      //CV_IMAGE_ELEM(contour, cv::Vec3b, r*i_width/t->width, c*i_width/t->width)=cv::Vec3b(255,0,0);
       return 0;
     }
   }
