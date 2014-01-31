@@ -21,7 +21,7 @@
 Plane matchStrengthsSimpleBounds(bool globalOri, cv::Mat mimg1, cv::Mat mimg2){
   // Copy the images to avoid screwing up other stuff
   cv::Mat mc1 = mimg1.clone();
-  cv::Mat mc2 = mimg1.clone();
+  cv::Mat mc2 = mimg2.clone();
   
   // Convert to IplImages for OpenSURF library use
   IplImage iimg1, iimg2;
@@ -68,7 +68,7 @@ Plane matchStrengthsSimpleBounds(bool globalOri, cv::Mat mimg1, cv::Mat mimg2){
 Plane matchStrengthsSimpleBoundsInContour(bool globalOri, cv::Mat mimg1, cv::Mat mimg2, cv::Mat bools1, cv::Mat bools2){
   // Copy the images to avoid screwing up other stuff
   cv::Mat mc1 = mimg1.clone();
-  cv::Mat mc2 = mimg1.clone();
+  cv::Mat mc2 = mimg2.clone();
   
   // Convert to IplImages for OpenSURF library use
   IplImage iimg1, iimg2;
@@ -79,9 +79,6 @@ Plane matchStrengthsSimpleBoundsInContour(bool globalOri, cv::Mat mimg1, cv::Mat
   img1 = &iimg1;
   img2 = &iimg2;
   
-  // Vectors to fill with interest points from each image
-  IpVec ipts1, ipts2;
- 
   // Convert/initialize boolean contour maps
   // Ignore features outside the contour, but process the pixels 
   std::cout<<"Contour-only ";
@@ -96,6 +93,9 @@ Plane matchStrengthsSimpleBoundsInContour(bool globalOri, cv::Mat mimg1, cv::Mat
   b1 = &bi1;
   b2 = &bi2;
 
+  // Vectors to fill with interest points from each image
+  IpVec ipts1, ipts2;
+ 
   surfDetDes(img1,ipts1,false,4,4,2,0.0001f,globalOri,b1);
   surfDetDes(img2,ipts2,false,4,4,2,0.0001f,globalOri,b2);
 
@@ -131,33 +131,26 @@ Plane matchStrengthsSimpleBoundsInContour(bool globalOri, cv::Mat mimg1, cv::Mat
 Plane matchStrengthsContour(bool globalOri, cv::Mat cimg1, cv::Mat cimg2, cv::Mat bools1, cv::Mat bools2, bool partialFeatureAdjust=true){
   // Copy the images to avoid screwing up other stuff
   cv::Mat mc1 = cimg1.clone();
-  cv::Mat mc2 = cimg1.clone();
+  cv::Mat mc2 = cimg2.clone();
+  cv::Mat bc1 = bools1.clone();
+  cv::Mat bc2 = bools2.clone();
   
   // Convert to IplImages for OpenSURF library use
-  IplImage iimg1, iimg2;
+  IplImage iimg1, iimg2, bi1, bi2;
   iimg1=mc1;
   iimg2=mc2;
+  bi1 = bc1;
+  bi2 = bc2;
 
-  IplImage *img1, *img2;
+  IplImage *img1, *img2, *b1, *b2;
   img1 = &iimg1;
   img2 = &iimg2;
+  b1 = &bi1;
+  b2 = &bi2;
   
   // Vectors to fill with interest points from each image
   IpVec ipts1, ipts2;
  
-  // Convert/initialize boolean contour maps
-  std::cout<<"Contour-only ";
-  cv::Mat bc1 = bools1.clone();
-  cv::Mat bc2 = bools2.clone();
-
-  IplImage bi1, bi2;
-  bi1 = bc1;
-  bi2 = bc2;
-
-  IplImage *b1, *b2;
-  b1 = &bi1;
-  b2 = &bi2;
-
   surfDetDesContour(img1,ipts1,false,4,4,2,0.0001f,globalOri,b1);
   surfDetDesContour(img2,ipts2,false,4,4,2,0.0001f,globalOri,b2);
 
@@ -170,6 +163,8 @@ Plane matchStrengthsContour(bool globalOri, cv::Mat cimg1, cv::Mat cimg2, cv::Ma
     matchesVector.rightImage.push_back(PixelLoc(matches[i].first.second.x,matches[i].first.second.y));
   }
   
+  std::cout<<"Contour-only ";
+
   if (globalOri)
     cout<<"global ";
   std::cout<<"SURF matches: " << matches.size() << std::endl;

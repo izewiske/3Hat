@@ -225,7 +225,9 @@ int main(int argc, char** argv){
 			cv::Mat contourBools2 = sliceB2.clone();
 			cv::Mat contourOnly2 = contourMatrix2.mul(contourBools2);
 			// find feature points
-			Plane surfMatches = matchStrengthsContour(true,contourOnly1, contourOnly2, contourBools1, contourBools2,true);
+			Plane surfMatches = matchStrengthsContour(true,contourOnly1, contourOnly2, contourBools1, contourBools2, true);
+			surfMatches = matchStrengthsSimpleBoundsInContour(true,contourOnly1, contourOnly2, contourBools1, contourBools2);
+			surfMatches = matchStrengthsContour(true,contourOnly1, contourOnly2, contourBools1, contourBools2, false);
 
 			// get actual features from human input 
 			Plane goldStandard = getUserDefinedPlane(tileID,imageID);
