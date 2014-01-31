@@ -7,10 +7,12 @@ target_link_libraries(	TestOnContours
 						OSURF-BASE
 						${OpenCV_LIBS}
 						${OPENGL_LIBRARIES}
-						${GLUT_LIBRARIES})
+						${GLUT_LIBRARIES}
+						levmar)
+
 
 add_executable(SurfTestDriver SURFTests.cpp)
 
 target_link_libraries(	SurfTestDriver
-	    					OSURF-BASE
+	    				OSURF-BASE
    						${OpenCV_LIBS})

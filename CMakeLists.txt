@@ -26,6 +26,8 @@ message(STATUS "OpenCV Non-free module defined.")
 message(STATUS "Non-free functions are enabled.")
 endif()
 
+link_directories(/home/cg/palantir/levmar/levmar-2.5)
+
 if(EXISTS src/eriolObjs.o)
 else()
 file(	COPY /home/cg/palantir/atp14/src/eriolObjs.o

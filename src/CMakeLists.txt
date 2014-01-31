@@ -8,4 +8,5 @@ target_link_libraries	(MultiContourDriver
 						${OpenCV_LIBS}
 						${OPENGL_LIBRARIES}
 						${GLUT_LIBRARIES}
+						levmar
 						)
