@@ -33,7 +33,7 @@
  */
 #define APPROX_THRESHOLD 10
 
-
+/*
 Plane matchStrengths(cv::Mat mimg1, cv::Mat mimg2, cv::Mat bools1, cv::Mat bools2) {
 	bool matchGlobalOrientations = true;
 	//OUT <<"Running with matchGlobalOrientations = "<<matchGlobalOrientations<<" first."<<std::endl;
@@ -84,6 +84,7 @@ Plane matchStrengths(cv::Mat mimg1, cv::Mat mimg2, cv::Mat bools1, cv::Mat bools
 	OUT << "Number of OpenSURF Matches: " << matches.size() << std::endl;
 	return matchesVector;
 }
+*/
 
 // function finds the best possible plane we could have computed with a series of points 
 Plane bestPossibleComputedPlane(Plane computedPoints, Plane actualPoints){ 
@@ -224,7 +225,7 @@ int main(int argc, char** argv){
 			cv::Mat contourBools2 = sliceB2.clone();
 			cv::Mat contourOnly2 = contourMatrix2.mul(contourBools2);
 			// find feature points
-			Plane surfMatches = matchStrengths(contourOnly1, contourOnly2, contourBools1, contourBools2);
+			Plane surfMatches = matchStrengthsContour(true,contourOnly1, contourOnly2, contourBools1, contourBools2,true);
 
 			// get actual features from human input 
 			Plane goldStandard = getUserDefinedPlane(tileID,imageID);
