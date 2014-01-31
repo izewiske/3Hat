@@ -196,13 +196,8 @@ bool contourIsDifficult(std::string tileID,std::string image){
 	Image imgPrime(image.c_str());
 	cv::Mat img(imgPrime.getHeight(),imgPrime.getWidth(),CV_8UC3,(void *) imgPrime.getData());
 	if(! img.data ) {
-<<<<<<< HEAD
-				ERR <<	"Could not open or find the image (1)\n";
-				return -1;
-=======
 		ERR <<	"Could not open or find the image (1)\n";
 		return -1;
->>>>>>> multi_driver
 	}
 
 	std::vector<PixelLoc> pixels = getContour(tileID,image);
