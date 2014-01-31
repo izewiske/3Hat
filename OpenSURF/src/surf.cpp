@@ -46,7 +46,7 @@ Surf::Surf(IplImage *img, IpVec &ipts)
 //-------------------------------------------------------
 
 //! Describe all features in the supplied vector
-void Surf::getDescriptors(bool upright, IplImage* int_con)
+void Surf::getDescriptors(bool upright, IplImage* int_con, bool partialFeatures)
 {
   // Check there are Ipoints to be described
   if (!ipts.size()) return;
@@ -63,7 +63,7 @@ void Surf::getDescriptors(bool upright, IplImage* int_con)
       index = i;
 
       // Extract upright (i.e. not rotation invariant) descriptors
-      getDescriptor(true, int_con);
+      getDescriptor(true, int_con, partialFeatures);
     }
   }
   else
@@ -76,7 +76,7 @@ void Surf::getDescriptors(bool upright, IplImage* int_con)
 
       // Assign Orientations and extract rotation invariant descriptors
       getOrientation(int_con);
-      getDescriptor(false, int_con);
+      getDescriptor(false, int_con, partialFeatures);
     }
   }
 }
@@ -131,7 +131,7 @@ void Surf::getOrientation(IplImage* int_con)
           // multiply distance away in i & j by scale for calculating wavelet responses
           resX[idx] = gauss * haarXContour(r+j*s, c+i*s, 4*s, int_con);
           resY[idx] = gauss * haarYContour(r+j*s, c+i*s, 4*s, int_con);
-	  
+
 	  // angle of the gradient (up from x-axis)
 	  if (std::isfinite(resX[idx]) && std::isfinite(resY[idx]))
             Ang[idx] = getAngle(resX[idx], resY[idx]);
@@ -191,175 +191,8 @@ void Surf::getOrientation(IplImage* int_con)
 
 //-------------------------------------------------------
 
-//! Get the modified descriptor. See Agrawal ECCV 08
-//! Modified descriptor contributed by Pablo Fernandez
-void Surf::getDescriptor(bool bUpright, IplImage* int_con)
-{
-  int y, x, sample_x, sample_y, count=0;
-  int i = 0, ix = 0, j = 0, jx = 0, xs = 0, ys = 0;
-  float scale, *desc, dx, dy, mdx, mdy, co, si;
-  float gauss_s1 = 0.f, gauss_s2 = 0.f;
-  float rx = 0.f, ry = 0.f, rrx = 0.f, rry = 0.f, len = 0.f;
-  float cx = -0.5f, cy = 0.f; //Subregion centers for the 4x4 gaussian weighting
-
-  Ipoint *ipt = &ipts[index];
-  scale = ipt->scale;
-  x = fRound(ipt->x);
-  y = fRound(ipt->y);  
-  desc = ipt->descriptor;
-
-  if (bUpright)
-  {
-    co = 1;
-    si = 0;
-  }
-  else
-  {
-    co = cos(ipt->orientation);
-    si = sin(ipt->orientation);
-  }
-
-  i = -8;
-
-  //choose whether to use haar or haarContour
-  if (int_con==NULL){
-    //Calculate descriptor for this interest point
-    while(i < 12)
-    {
-      j = -8;
-      i = i-4;
-  
-      cx += 1.f;
-      cy = -0.5f;
-
-      while(j < 12) 
-      {
-        dx=dy=mdx=mdy=0.f;
-        cy += 1.f;
-
-        j = j - 4;
-  
-        ix = i + 5;
-        jx = j + 5;
-
-        xs = fRound(x + ( -jx*scale*si + ix*scale*co));
-        ys = fRound(y + ( jx*scale*co + ix*scale*si));
-
-        for (int k = i; k < i + 9; ++k) 
-        {
-          for (int l = j; l < j + 9; ++l) 
-          {
-            //Get coords of sample point on the rotated axis
-            sample_x = fRound(x + (-l*scale*si + k*scale*co));
-            sample_y = fRound(y + ( l*scale*co + k*scale*si));
-  
-            //Get the gaussian weighted x and y responses
-            gauss_s1 = gaussian(xs-sample_x,ys-sample_y,2.5f*scale);
-            rx = haarX(sample_y, sample_x, 2*fRound(scale));
-            ry = haarY(sample_y, sample_x, 2*fRound(scale));
-
-            //Get the gaussian weighted x and y responses on rotated axis
-            rrx = gauss_s1*(-rx*si + ry*co);
-            rry = gauss_s1*(rx*co + ry*si);
-  
-            dx += rrx;
-            dy += rry;
-            mdx += fabs(rrx);
-            mdy += fabs(rry);
-
-          }  
-        }
-
-        //Add the values to the descriptor vector
-        gauss_s2 = gaussian(cx-2.0f,cy-2.0f,1.5f);
-
-        desc[count++] = dx*gauss_s2;
-        desc[count++] = dy*gauss_s2;
-        desc[count++] = mdx*gauss_s2;
-        desc[count++] = mdy*gauss_s2;
-
-        len += (dx*dx + dy*dy + mdx*mdx + mdy*mdy) * gauss_s2*gauss_s2;
-
-        j += 9;
-      }
-      i += 9;
-    }
-  }
-  else {
-    //Calculate descriptor for this interest point
-    while(i < 12)
-    {
-      j = -8;
-      i = i-4;
-  
-      cx += 1.f;
-      cy = -0.5f;
-
-      while(j < 12) 
-      {
-        dx=dy=mdx=mdy=0.f;
-        cy += 1.f;
-
-        j = j - 4;
-  
-        ix = i + 5;
-        jx = j + 5;
-
-        xs = fRound(x + ( -jx*scale*si + ix*scale*co));
-        ys = fRound(y + ( jx*scale*co + ix*scale*si));
-
-        for (int k = i; k < i + 9; ++k) 
-        {
-          for (int l = j; l < j + 9; ++l) 
-          {
-            //Get coords of sample point on the rotated axis
-            sample_x = fRound(x + (-l*scale*si + k*scale*co));
-            sample_y = fRound(y + ( l*scale*co + k*scale*si));
-  
-            //Get the gaussian weighted x and y responses
-            gauss_s1 = gaussian(xs-sample_x,ys-sample_y,2.5f*scale);
-            rx = haarXContour(sample_y, sample_x, 2*fRound(scale), int_con);
-            ry = haarYContour(sample_y, sample_x, 2*fRound(scale), int_con);
-
-            //Get the gaussian weighted x and y responses on rotated axis
-            rrx = gauss_s1*(-rx*si + ry*co);
-            rry = gauss_s1*(rx*co + ry*si);
-  
-            dx += rrx;
-            dy += rry;
-            mdx += fabs(rrx);
-            mdy += fabs(rry);
-
-          }  
-        }
-
-        //Add the values to the descriptor vector
-        gauss_s2 = gaussian(cx-2.0f,cy-2.0f,1.5f);
-
-        desc[count++] = dx*gauss_s2;
-        desc[count++] = dy*gauss_s2;
-        desc[count++] = mdx*gauss_s2;
-        desc[count++] = mdy*gauss_s2;
-
-        len += (dx*dx + dy*dy + mdx*mdx + mdy*mdy) * gauss_s2*gauss_s2;
-
-        j += 9;
-      }
-      i += 9;
-    }
-  }
-
-  //Convert to Unit Vector
-  len = sqrt(len);
-  for(int i = 0; i < 64; ++i)
-    desc[i] /= len;
-
-}
-
-//-------------------------------------------------------
-
 //! Describe all features in the supplied vector
-void Surf::getDescriptorsGlobal(bool upright, IplImage* int_con, const int init_sample)
+void Surf::getDescriptorsGlobal(bool upright, IplImage* int_con, bool partialFeatures, const int init_sample)
 {
   // Check there are Ipoints to be described
   if (!ipts.size()) return;
@@ -376,7 +209,7 @@ void Surf::getDescriptorsGlobal(bool upright, IplImage* int_con, const int init_
       index = i;
 
       // Extract upright (i.e. not rotation invariant) descriptors
-      getDescriptor(true, int_con);
+      getDescriptor(true, int_con, partialFeatures);
     }
   }
   else
@@ -389,7 +222,7 @@ void Surf::getDescriptorsGlobal(bool upright, IplImage* int_con, const int init_
 
       // Assign Orientations and extract rotation invariant descriptors
       getOrientationGlobal(int_con, init_sample);
-      getDescriptorGlobal(false, int_con);
+      getDescriptor(false, int_con, partialFeatures);
     }
   }
 }
@@ -441,35 +274,35 @@ void Surf::getOrientationGlobal(IplImage* int_con, const int init_sample)
 
     // decide whether to use haar or haarContour
     if (int_con==NULL){
-      cv::Mat haarMatX(h,w,CV_8UC1,cvScalar(0));
-      cv::Mat haarMatY(h,w,CV_8UC1,cvScalar(0));
+      //cv::Mat haarMatX(h,w,CV_8UC1,cvScalar(0));
+      //cv::Mat haarMatY(h,w,CV_8UC1,cvScalar(0));
       // calculate haar response for the entire image at this scale
       for (int x=0; x<h; x++){
         for (int y=0; y<w; y++){
           // calculate wavelet response at this point and scale
           resX[x*w+y] = haarX(x*s*sfactor, y*s*sfactor, sfactor*s);
           totX+=resX[x*w+y];
-            haarMatX.at<unsigned char>(x,y)=resX[x*w+y]*255;
+            //haarMatX.at<unsigned char>(x,y)=resX[x*w+y]*255;
           resY[x*w+y] = haarY(x*s*sfactor, y*s*sfactor, sfactor*s);
           totY+=resY[x*w+y];
-            haarMatY.at<unsigned char>(x,y)=resY[x*w+y]*255;
+            //haarMatY.at<unsigned char>(x,y)=resY[x*w+y]*255;
           // angle of the gradient (up from x-axis)
           Ang[x*w+y] = getAngle(resX[x*w+y], resY[x*w+y]);
 
           //std::cout<<"x: "<<x*s*2<<"\ty: "<<y*s*2<<std::endl;
         }
       }
-      std::cout<<"scale: "<<s*sfactor<<std::endl;
-      cv::namedWindow("haarX", cv::WINDOW_AUTOSIZE);
-      cv::imshow("haarX", haarMatX);
-      cv::namedWindow("haarY", cv::WINDOW_AUTOSIZE);
-      cv::imshow("haarY", haarMatY);
+      //std::cout<<"scale: "<<s*sfactor<<std::endl;
+      //cv::namedWindow("haarX", cv::WINDOW_AUTOSIZE);
+      //cv::imshow("haarX", haarMatX);
+      //cv::namedWindow("haarY", cv::WINDOW_AUTOSIZE);
+      //cv::imshow("haarY", haarMatY);
       //cv::waitKey(0);
     }
     else {
       // calculate haar response for the entire image at this scale
-      cv::Mat haarMatX(h,w,CV_8UC1,cvScalar(0));
-      cv::Mat haarMatY(h,w,CV_8UC1,cvScalar(0));
+      //cv::Mat haarMatX(h,w,CV_8UC1,cvScalar(0));
+      //cv::Mat haarMatY(h,w,CV_8UC1,cvScalar(0));
 
       for (int x=0; x<h; x++){
         for (int y=0; y<w; y++){
@@ -477,12 +310,12 @@ void Surf::getOrientationGlobal(IplImage* int_con, const int init_sample)
           resX[x*w+y] = haarXContour(x*s*sfactor, y*s*sfactor, sfactor*s, int_con);
 	  if (std::isfinite(resX[x*w+y])){
             totX+=resX[x*w+y];
-            haarMatX.at<unsigned char>(x,y)=resX[x*w+y]*255;
+            //haarMatX.at<unsigned char>(x,y)=resX[x*w+y]*255;
           }
           resY[x*w+y] = haarYContour(x*s*sfactor, y*s*sfactor, sfactor*s, int_con);
 	  if (std::isfinite(resY[x*w+y])){
             totY+=resY[x*w+y];
-            haarMatY.at<unsigned char>(x,y)=resY[x*w+y]*255;
+            //haarMatY.at<unsigned char>(x,y)=resY[x*w+y]*255;
           }
           // angle of the gradient (up from x-axis)
 	  if (std::isfinite(resX[x*w+y]) && std::isfinite(resY[x*w+y]))
@@ -493,11 +326,11 @@ void Surf::getOrientationGlobal(IplImage* int_con, const int init_sample)
           //std::cout<<"x: "<<x*s*2<<"\ty: "<<y*s*2<<std::endl;
         }
       }
-      std::cout<<"scale: "<<s*sfactor<<std::endl;
-      cv::namedWindow("haarX", cv::WINDOW_AUTOSIZE);
-      cv::imshow("haarX", haarMatX);
-      cv::namedWindow("haarY", cv::WINDOW_AUTOSIZE);
-      cv::imshow("haarY", haarMatY);
+      //std::cout<<"scale: "<<s*sfactor<<std::endl;
+      //cv::namedWindow("haarX", cv::WINDOW_AUTOSIZE);
+      //cv::imshow("haarX", haarMatX);
+      //cv::namedWindow("haarY", cv::WINDOW_AUTOSIZE);
+      //cv::imshow("haarY", haarMatY);
       //cv::waitKey(0);
     }
     //std::cout<<" Angle from totals: "<<getAngle(totX,totY)<<" at scale "<<scale<<std::endl;
@@ -552,7 +385,7 @@ void Surf::getOrientationGlobal(IplImage* int_con, const int init_sample)
     
     sumScaleXs+=maxSumX;
     sumScaleYs+=maxSumY;
-    std::cout<<" Image orientation is: "<<orientation<<" at scale "<<scale<<"\n"<<std::endl;
+    //std::cout<<" Image orientation is: "<<orientation<<" at scale "<<scale<<"\n"<<std::endl;
 
 //    orientation = getAngle(totX,totY);
 
@@ -565,7 +398,7 @@ void Surf::getOrientationGlobal(IplImage* int_con, const int init_sample)
   oris[-1] = sumScaleOris/(1+NUMSCALES);
   oris[-1] = getAngle(sumScaleXs,sumScaleYs);
 
-  std::cout<<"Total orientation: "<<oris[-1]<<std::endl;
+  //std::cout<<"Total orientation: "<<oris[-1]<<std::endl;
   ipt->orientation = oris[-1];
 }
 
@@ -573,14 +406,13 @@ void Surf::getOrientationGlobal(IplImage* int_con, const int init_sample)
 
 //! Get the modified descriptor. See Agrawal ECCV 08
 //! Modified descriptor contributed by Pablo Fernandez
-//! Weighed, globally-oriented descriptor
-void Surf::getDescriptorGlobal(bool bUpright, IplImage* int_con)
+void Surf::getDescriptor(bool bUpright, IplImage* int_con, bool partial)
 {
-  int y, x, sample_x, sample_y, count=0, finitecount=0;
+  int y, x, sample_x, sample_y, count=0;
   int i = 0, ix = 0, j = 0, jx = 0, xs = 0, ys = 0;
   float scale, *desc, dx, dy, mdx, mdy, co, si;
   float gauss_s1 = 0.f, gauss_s2 = 0.f;
-  float rx = 0.f, ry = 0.f, rrx = 0.f, rry = 0.f, len = 0.f;
+  float rx = 0.f, ry = 0.f, rrx = 0.f, rry = 0.f;
   float cx = -0.5f, cy = 0.f; //Subregion centers for the 4x4 gaussian weighting
 
   Ipoint *ipt = &ipts[index];
@@ -602,10 +434,11 @@ void Surf::getDescriptorGlobal(bool bUpright, IplImage* int_con)
 
   i = -8;
 
+  //Calculate descriptor for this interest point next
+
   //decide whether to use haar or haarContour
-  if (true){//int_con==NULL){
-    finitecount = 64; //descriptor is complete
-    //Calculate descriptor for this interest point
+  if (int_con==NULL || !partial){
+    float len = 0.f; //for normalization
     while(i < 12)
     {
       j = -8;
@@ -665,9 +498,14 @@ void Surf::getDescriptorGlobal(bool bUpright, IplImage* int_con)
       }
       i += 9;
     }
+
+    //Convert to Unit Vector
+    len = sqrt(len);
+    for(int i = 0; i < 64; ++i)
+      desc[i] /= len;
   }
   else {
-    //Calculate descriptor for this interest point
+    //Partial --> not normalized (must use partialDistance for comparison)
     while(i < 12)
     {
       j = -8;
@@ -726,27 +564,11 @@ void Surf::getDescriptorGlobal(bool bUpright, IplImage* int_con)
             std::cout<<dx*gauss_s2<<" -- "<<dy*gauss_s2<<" -- "<<mdx*gauss_s2<<" -- "<<mdy*gauss_s2<<std::endl;
         */
 
-        if (std::isfinite(dx)){
-          len+=(dx*dx+mdx*mdx)*gauss_s2*gauss_s2;
-          finitecount+=2;
-        }
-        if (std::isfinite(dy)){
-          len+=(dy*dy+mdy*mdy)*gauss_s2*gauss_s2;
-          finitecount+=2;
-        }
-
         j += 9;
       }
       i += 9;
     }
   }
-
-  //Convert to Unit Vector
-  //Assume missing components have average length
-  //(i.e. if 1/3 are missing, normalize rest to length of 2/3)
-  len = sqrt(len);
-  for(int i = 0; i < 64; ++i)
-    desc[i] *= ((float)finitecount)/(len*64.0f);
 }
 
 //-------------------------------------------------------
