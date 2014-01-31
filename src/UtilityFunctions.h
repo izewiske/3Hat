@@ -113,7 +113,7 @@ cv::Mat locsToBool(vector<PixelLoc> contourPixels, cv::Mat img, int pixelBuffer 
 					// if it isn't then check that it has 2 or more neighbors
 					if (pixelNeighbors(i,j,boolMat)) {
 						// if it has 2 or more neighbors then it belongs in the contour
-						boolMat.at<cv::Vec3b>(contourPixels[i].y,contourPixels[i].x)[j]=1;
+						boolMat.at<cv::Vec3b>(contourPixels[i].x,contourPixels[i].y)[j]=1;
 					}
 				}
 			}
