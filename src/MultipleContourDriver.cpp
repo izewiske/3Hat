@@ -190,6 +190,9 @@ int main(int argc, char** argv){
 			cv::Mat contourOnly2 = contourMatrix2.mul(contourBools2);
 			// find feature points
 
+			// get actual features from human input 
+			Plane goldStandard = getUserDefinedPlane(tileID,imageID);
+
 			Plane surfMatches = matchStrengthsContour(true,contourOnly1, contourOnly2, contourBools1, contourBools2,true);
 			// compare with stats
 			OUT  << "Overall matchStrengthsContour match quality: " << compareFeaturePoints(surfMatches,goldStandard) << ".\n";
@@ -200,8 +203,7 @@ int main(int argc, char** argv){
 	
 			surfMatches = matchStrengthsContour(true,contourOnly1, contourOnly2, contourBools1, contourBools2, false);
 
-			// get actual features from human input 
-			Plane goldStandard = getUserDefinedPlane(tileID,imageID);
+			
 
 			// compare with stats
 			OUT  << "Overall matchStrengthsContour match quality: " << compareFeaturePoints(surfMatches,goldStandard) << ".\n";
