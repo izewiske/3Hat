@@ -189,22 +189,21 @@ int main(int argc, char** argv){
 			cv::Mat contourBools2 = sliceB2.clone();
 			cv::Mat contourOnly2 = contourMatrix2.mul(contourBools2);
 			// find feature points
-
+<<<<<<< HEAD
 			Plane surfMatches = matchStrengthsContour(true,contourOnly1, contourOnly2, contourBools1, contourBools2,true);
-			// compare with stats
-			OUT  << "Overall matchStrengthsContour match quality: " << compareFeaturePoints(surfMatches,goldStandard) << ".\n";
-		
+				
+			
+=======
+			Plane surfMatches = matchStrengthsContour(true,contourOnly1, contourOnly2, contourBools1, contourBools2, true);
 			surfMatches = matchStrengthsSimpleBoundsInContour(true,contourOnly1, contourOnly2, contourBools1, contourBools2);
-			// compare with stats
-			OUT  << "Overall matchStrengthsSimpleBoundsInContour match quality: " << compareFeaturePoints(surfMatches,goldStandard) << ".\n";
-	
 			surfMatches = matchStrengthsContour(true,contourOnly1, contourOnly2, contourBools1, contourBools2, false);
 
+>>>>>>> 7bde649f1c785053361abd21fc7ff09e0cc44a51
 			// get actual features from human input 
 			Plane goldStandard = getUserDefinedPlane(tileID,imageID);
 
 			// compare with stats
-			OUT  << "Overall matchStrengthsContour match quality: " << compareFeaturePoints(surfMatches,goldStandard) << ".\n";
+			OUT  << "Overall match quality: " << compareFeaturePoints(surfMatches,goldStandard) << ".\n";
 			// matching fewer than three points is useless.
 			if (surfMatches.leftImage.size() < 3 || surfMatches.rightImage.size() < 3) {
 				OUT << "Tile: " << tileID << " does not have any strong SURF features. Consider alternative methods.\n";

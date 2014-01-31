@@ -32,7 +32,60 @@
  * right image match to still supercede the "best-fit" match approximation.
  */
 #define APPROX_THRESHOLD 10
-#define _HESSIAN_THRESH 15
+
+/*
+Plane matchStrengths(cv::Mat mimg1, cv::Mat mimg2, cv::Mat bools1, cv::Mat bools2) {
+	bool matchGlobalOrientations = true;
+	//OUT <<"Running with matchGlobalOrientations = "<<matchGlobalOrientations<<" first."<<std::endl;
+
+	// Make images as Mats; convert to IplImage for OpenSURF library actions
+	cv::Mat mc1 = mimg1.clone();
+	cv::Mat mc2 = mimg2.clone();
+
+
+	IplImage iimg1, iimg2, bi1, bi2;
+	iimg1=mc1;
+	iimg2=mc2;
+	bi1 = bools1;
+	bi2 = bools2;
+
+	IplImage *img1, *img2, *b1, *b2;
+	img1 = &iimg1;
+	img2 = &iimg2;
+	b1 = &bi1;
+	b2 = &bi2;
+
+	IpVec ipts1, ipts2;
+	surfDetDes(img1,ipts1,false,4,4,2,0.0001f,matchGlobalOrientations,b1);
+	surfDetDes(img2,ipts2,false,4,4,2,0.0001f,matchGlobalOrientations,b2);
+
+	MatchVec matches;
+	getMatchesSymmetric(ipts1,ipts2,matches,true);
+
+	IpVec mpts1, mpts2;
+	Plane matchesVector;
+
+	for (unsigned int i = 0; i < matches.size(); ++i)	{
+		float strengthOverThreshold = 1 - matches[i].second; // /MATCH_THRESHOLD;
+		strengthOverThreshold*=255;
+		CvScalar clr = cvScalar(strengthOverThreshold,strengthOverThreshold,strengthOverThreshold);
+		clr = cvScalar(255,255,255);
+		
+		//mpts1.push_back(matches[i].first.first);
+		//mpts2.push_back(matches[i].first.second);
+	
+		//cvLine(img1,cvPoint(matches[i].first.first.x,matches[i].first.first.y),cvPoint(matches[i].first.second.x+w,matches[i].first.second.y), clr,1);
+		//cvLine(img2,cvPoint(matches[i].first.first.x-w,matches[i].first.first.y),cvPoint(matches[i].first.second.x,matches[i].first.second.y), clr,1);
+
+		matchesVector.leftImage.push_back(PixelLoc(matches[i].first.first.x,matches[i].first.first.y));
+		matchesVector.rightImage.push_back(PixelLoc(matches[i].first.second.x,matches[i].first.second.y));
+	}
+
+	OUT << "Number of OpenSURF Matches: " << matches.size() << std::endl;
+	return matchesVector;
+}
+*/
+
 // function finds the best possible plane we could have computed with a series of points 
 Plane bestPossibleComputedPlane(Plane computedPoints, Plane actualPoints){ 
 	// determines the best fitting plane computed - best possible scenario
@@ -115,7 +168,6 @@ int main(int argc, char** argv){
 		}
 	//loop through images
 	for (int i = 1; i < argc; i++){
-		try {
 		std::string imageID = argv[i];
 		std::string imageIDL = imageID + "L";
 		std::string imageIDR = imageID + "R";
@@ -145,66 +197,43 @@ int main(int argc, char** argv){
 			std::vector<PixelLoc> pixels1 = getContour(tileID,imageIDL);
 			std::vector<PixelLoc> pixels2 = getContour(tileID,imageIDR);
 			std::vector<cv::Point2f> contour1;
-		OUT << "Image: " << imageID<< "\n";
-		if(pixels1.size()==0) continue;
-		if(pixels2.size()==0) continue;
-
 	        for (int j = 0; j < pixels1.size(); ++j) {
-			if ( pixels1[j].x > 0 && pixels1[j].y > 0 && pixels1[j].x < image1.cols && pixels1[j].y < image1.rows) {
-	        		cv::Point2f p1(pixels1[j].x,pixels1[j].y);
-	        		contour1.push_back(p1);
-			}
+	        	cv::Point2f p1(pixels1[j].x,pixels1[j].y);
+	        	contour1.push_back(p1);
 	        }
 			std::vector<cv::Point2f> contour2;
 	        for (int j = 0; j < pixels2.size(); ++j) {
-			if ( pixels1[j].x > 0 && pixels1[j].y > 0 && pixels1[j].x < image1.cols && pixels1[j].y < image1.rows) {
-	       			cv::Point2f p2(pixels2[j].x,pixels2[j].y);
-	        		contour2.push_back(p2);
-	        	}
-		}
-	
+	       		cv::Point2f p2(pixels2[j].x,pixels2[j].y);
+	        	contour2.push_back(p2);
+	        }
+
 	        cv::Rect roi1 = cv::boundingRect(contour1);
 			cv::Mat slice1(image1,roi1);
-			//OUT <<"Slice 1: "<<slice1.rows << " "<<slice1.cols << "\n";
+			cv::Mat contourMatrix1 = slice1.clone();
+			//OUT << "Got to locsToBool\n";
+			cv::Mat bools1 = locsToBool(pixels1,image1);
+			//OUT << "Got passed locsToBool\n";
+			cv::Mat sliceB1(bools1,roi1);
+			cv::Mat contourBools1 = sliceB1.clone();
+			cv::Mat contourOnly1 = contourMatrix1.mul(contourBools1);
 
 			cv::Rect roi2 = cv::boundingRect(contour2);
 			cv::Mat slice2(image2,roi2);
-			//OUT <<"Slice 2: "<<slice2.rows << " "<<slice2.cols << "\n";
-			if(slice1.rows <= _HESSIAN_THRESH || slice2.rows<=_HESSIAN_THRESH || slice1.cols <= _HESSIAN_THRESH || slice2.cols <= _HESSIAN_THRESH){
-                                ERR << "Tile: " << tileID << " is too small for a Hessian matrix.\n";
-                                continue;
-                        }		
-			 cv::Mat contourMatrix1 = slice1.clone();
-                        //OUT << "Got to locsToBool\n";
-                        cv::Mat bools1 = locsToBool(pixels1,image1);
-                        //OUT << "Got passed locsToBool\n";
-                        cv::Mat sliceB1(bools1,roi1);
-                        cv::Mat contourBools1 = sliceB1.clone();
-                        cv::Mat contourOnly1 = contourMatrix1.mul(contourBools1);
-
-
 			cv::Mat contourMatrix2 = slice2.clone();
 			cv::Mat bools2 = locsToBool(pixels2,image2);
 			cv::Mat sliceB2(bools2,roi2);
 			cv::Mat contourBools2 = sliceB2.clone();
 			cv::Mat contourOnly2 = contourMatrix2.mul(contourBools2);
 			// find feature points
-
-			Plane surfMatches = matchStrengthsContour(true,contourOnly1, contourOnly2, contourBools1, contourBools2,true);
-			// compare with stats
-			OUT  << "Overall matchStrengthsContour match quality: " << compareFeaturePoints(surfMatches,goldStandard) << ".\n";
-		
+			Plane surfMatches = matchStrengthsContour(true,contourOnly1, contourOnly2, contourBools1, contourBools2, true);
 			surfMatches = matchStrengthsSimpleBoundsInContour(true,contourOnly1, contourOnly2, contourBools1, contourBools2);
-			// compare with stats
-			OUT  << "Overall matchStrengthsSimpleBoundsInContour match quality: " << compareFeaturePoints(surfMatches,goldStandard) << ".\n";
-	
 			surfMatches = matchStrengthsContour(true,contourOnly1, contourOnly2, contourBools1, contourBools2, false);
 
 			// get actual features from human input 
 			Plane goldStandard = getUserDefinedPlane(tileID,imageID);
 
 			// compare with stats
-			OUT  << "Overall matchStrengthsContour match quality: " << compareFeaturePoints(surfMatches,goldStandard) << ".\n";
+			OUT  << "Overall match quality: " << compareFeaturePoints(surfMatches,goldStandard) << ".\n";
 			// matching fewer than three points is useless.
 			if (surfMatches.leftImage.size() < 3 || surfMatches.rightImage.size() < 3) {
 				OUT << "Tile: " << tileID << " does not have any strong SURF features. Consider alternative methods.\n";
@@ -219,10 +248,6 @@ int main(int argc, char** argv){
 			for (int j=0; j< goldStandard.leftImage.size(); j++){
 				OUT  << "\t (" << goldStandard.leftImage[j].x << ", " << goldStandard.leftImage[j].y << ")->(" << goldStandard.rightImage[j].x << ", " << goldStandard.rightImage[j].y << ")";		
 			}
-		}
-		} catch (int e) {
-			ERR << "An unknown error occured. Probably with some negative in index in OpenCV because they haunt my dreams.\n";
-			continue;
 		}
 	}
 	return 0;

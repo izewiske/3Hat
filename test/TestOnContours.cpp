@@ -7,6 +7,7 @@
 
 #include "surflib.h"
 #include "eriolHeader.h"
+#include "GetMatchesSURF.h"
 
 #include <opencv2/opencv.hpp>
 #include "opencv2/highgui/highgui.hpp"
@@ -87,8 +88,8 @@ int matchStrengths(cv::Mat mimg1, cv::Mat mimg2, cv::Mat cimg1, cv::Mat cimg2, c
   // Make images as Mats; convert to IplImage for OpenSURF library actions
   cv::Mat mc1 = cimg1.clone();
   cv::Mat mc2 = cimg2.clone();
-  cv::Mat mc3 = mimg1.clone();
-  cv::Mat mc4 = mimg2.clone();
+  cv::Mat mc3 = cimg1.clone();
+  cv::Mat mc4 = cimg2.clone();
 
   IplImage iimg1, iimg2, bi1, bi2;
   iimg1=mc1;
