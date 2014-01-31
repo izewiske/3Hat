@@ -195,18 +195,21 @@ int main(int argc, char** argv){
 
 			Plane surfMatches = matchStrengthsContour(true,contourOnly1, contourOnly2, contourBools1, contourBools2,true);
 			// compare with stats
-			OUT  << "Overall matchStrengthsContour match quality: " << compareFeaturePoints(surfMatches,goldStandard) << ".\n";
+			OUT  << "Overall (all enabled) match quality: " << compareFeaturePoints(surfMatches,goldStandard) << ".\n";
 		
 			surfMatches = matchStrengthsSimpleBoundsInContour(true,contourOnly1, contourOnly2, contourBools1, contourBools2);
 			// compare with stats
-			OUT  << "Overall matchStrengthsSimpleBoundsInContour match quality: " << compareFeaturePoints(surfMatches,goldStandard) << ".\n";
+			OUT  << "Overall (no partial) match quality: " << compareFeaturePoints(surfMatches,goldStandard) << ".\n";
 	
-			surfMatches = matchStrengthsContour(true,contourOnly1, contourOnly2, contourBools1, contourBools2, false);
+			surfMatches = matchStrengthsSimpleBoundsInContour(false,contourOnly1, contourOnly2, contourBools1, contourBools2);
+			// compare with stats
+			OUT  << "Overall (local) match quality: " << compareFeaturePoints(surfMatches,goldStandard) << ".\n";
 
+			surfMatches = matchStrengthsSimpleBoundsInContour(false,contourMatrix1, contourMatrix2, contourBools1, contourBools2);
+			// compare with stats
+			OUT  << "Overall (local, full image) match quality: " << compareFeaturePoints(surfMatches,goldStandard) << ".\n";
 			
 
-			// compare with stats
-			OUT  << "Overall matchStrengthsContour match quality: " << compareFeaturePoints(surfMatches,goldStandard) << ".\n";
 			// matching fewer than three points is useless.
 			if (surfMatches.leftImage.size() < 3 || surfMatches.rightImage.size() < 3) {
 				OUT << "Tile: " << tileID << " does not have any strong SURF features. Consider alternative methods.\n";

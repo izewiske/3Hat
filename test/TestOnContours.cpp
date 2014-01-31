@@ -104,14 +104,14 @@ int matchStrengths(cv::Mat mimg1, cv::Mat mimg2, cv::Mat cimg1, cv::Mat cimg2, c
   b2 = &bi2;
 
   IpVec ipts1, ipts2;
-  surfDetDesContour(img1,ipts1,false,4,4,2,0.0001f,matchGlobalOrientations,b1);
-  surfDetDesContour(img2,ipts2,false,4,4,2,0.0001f,matchGlobalOrientations,b2);
+  surfDetDes(img1,ipts1,false,4,4,2,0.0001f,!matchGlobalOrientations,b1);
+  surfDetDes(img2,ipts2,false,4,4,2,0.0001f,!matchGlobalOrientations,b2);
 
   drawIpoints(img1, ipts1);
   drawIpoints(img2, ipts2);
 
   MatchVec matches;
-  getMatchesSymmetric(ipts1,ipts2,matches,true);
+  getMatchesSymmetric(ipts1,ipts2,matches,false);
 
   IpVec mpts1, mpts2;
 
@@ -220,14 +220,14 @@ int main( int argc, char** argv ) {
 				return -1;
 		}
 		
-		std::vector<PixelLoc> pixels1 = getContour(tileID,imageID1);
+		std::vector<PixelLoc> pixels1 = getContour(tileID,imageID1,true);
 		std::cerr<< "Number of pixels (1): "  << pixels1.size() << std::endl;
 	        std::vector<cv::Point2f> contour1;
         	for (int j = 0; j < pixels1.size(); ++j) {
         	        cv::Point2f p1(pixels1[j].x,pixels1[j].y);
         	        contour1.push_back(p1);
         	}
-		std::vector<PixelLoc> pixels2 = getContour(tileID,imageID2);
+		std::vector<PixelLoc> pixels2 = getContour(tileID,imageID2,true);
 		std::cerr<< "Number of pixels (2): "  << pixels2.size() << std::endl;
 	        std::vector<cv::Point2f> contour2;
         	for (int j = 0; j < pixels2.size(); ++j) {
