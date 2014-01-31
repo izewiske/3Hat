@@ -14,3 +14,4 @@ CMakeCache.txt
 *.m
 *.jpg
 eriolHeader.h
+build/*

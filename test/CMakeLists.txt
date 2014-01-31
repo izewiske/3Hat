@@ -12,5 +12,5 @@ target_link_libraries(	TestOnContours
 add_executable(SurfTestDriver SURFTests.cpp)
 
 target_link_libraries(	SurfTestDriver
-    					OSURF-BASE
+	    					OSURF-BASE
    						${OpenCV_LIBS})
