@@ -78,31 +78,24 @@ bool pixelNeighbors(int x, int y, cv::Mat contour){
 
 cv::Mat locsToBool(vector<PixelLoc> contourPixels, cv::Mat img, int pixelBuffer = 3){
 	cv::Mat boolMat(img.rows,img.cols,CV_8UC3,cvScalar(0,0,0));
-	// buffers around edges
-	int x1 = img.cols;
-	int y1 = img.rows;
-	int x2 = 0;
-	int y2 = 0;
-	for(int i =0; i<contourPixels.size(); i++ ){
-		if (contourPixels[i].x > x2) {
-			x2 = contourPixels[i].x;
-		} else if (contourPixels[i].x < x1){
-			x1 = contourPixels[i].x;
-		}
-		if (contourPixels[i].y > y2){
-			y2 = contourPixels[i].y;
-		} else if (contourPixels[i].y < y1 ){
-			y1 = contourPixels[i].y;
-		}
-	}
-	contourPixels.push_back(PixelLoc(x1-pixelBuffer,y1-pixelBuffer));
-	contourPixels.push_back(PixelLoc(x2+pixelBuffer,y2+pixelBuffer));
+
 
 	for (unsigned int i=0; i<contourPixels.size(); i++){
-		for (int j=0; j<3; j++){
-			boolMat.at<cv::Vec3b>(contourPixels[i].y,contourPixels[i].x)[j]=1;
+		for(int k=-pixelBuffer; k<pixelBuffer; k++) {
+			for(int h=-pixelBuffer; h<pixelBuffer;h++){
+				for (int j=0; j<3; j++){
+					if (contourPixels[i].y+h >= 0 && contourPixels[i].y+h < img.rows && contourPixels[i].x+k >= 0 && contourPixels[i].x+k < img.rows) {
+						boolMat.at<cv::Vec3b>(contourPixels[i].y+h,contourPixels[i].x+k)[j]=1;
+					}
+				}
+			}
 		}
 	}
+	/*
+	 *	More preparation of the boolean contour array is possible but not implemented at this time.
+	 */ 
+
+	/*
 	// iterate over boolMat and find pits
 	for(int i=x1-pixelBuffer; i<= x2+pixelBuffer; i++){
 		for(int j = y1-pixelBuffer; j <= y2+pixelBuffer; j++){
@@ -113,12 +106,13 @@ cv::Mat locsToBool(vector<PixelLoc> contourPixels, cv::Mat img, int pixelBuffer 
 					// if it isn't then check that it has 2 or more neighbors
 					if (pixelNeighbors(i,j,boolMat)) {
 						// if it has 2 or more neighbors then it belongs in the contour
-						boolMat.at<cv::Vec3b>(contourPixels[i].x,contourPixels[i].y)[j]=1;
+						boolMat.at<cv::Vec3b>(contourPixels[i].y,contourPixels[i].x)[j]=1;
 					}
 				}
 			}
 		}
 	}
+	*/
 
 	return boolMat;
 }
