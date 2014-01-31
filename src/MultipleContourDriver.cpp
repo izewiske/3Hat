@@ -145,23 +145,41 @@ int main(int argc, char** argv){
 			std::vector<PixelLoc> pixels1 = getContour(tileID,imageIDL);
 			std::vector<PixelLoc> pixels2 = getContour(tileID,imageIDR);
 			std::vector<cv::Point2f> contour1;
-		OUT << "Image: " << imageID<< "\n";
-		if(pixels1.size()==0) continue;
-		if(pixels2.size()==0) continue;
+			OUT << "Image: " << imageID<< "\n";
+			if(pixels1.empty()) continue;
+			if(pixels2.empty()) continue;
 
 	        for (int j = 0; j < pixels1.size(); ++j) {
-			if ( pixels1[j].x > 0 && pixels1[j].y > 0 && pixels1[j].x < image1.cols && pixels1[j].y < image1.rows) {
+				if ( pixels1[j].x > 0 && pixels1[j].y > 0 && pixels1[j].x < image1.cols && pixels1[j].y < image1.rows) {
 	        		cv::Point2f p1(pixels1[j].x,pixels1[j].y);
 	        		contour1.push_back(p1);
-			}
+				}
 	        }
 			std::vector<cv::Point2f> contour2;
 	        for (int j = 0; j < pixels2.size(); ++j) {
-			if ( pixels1[j].x > 0 && pixels1[j].y > 0 && pixels1[j].x < image1.cols && pixels1[j].y < image1.rows) {
+				if ( pixels1[j].x > 0 && pixels1[j].y > 0 && pixels1[j].x < image1.cols && pixels1[j].y < image1.rows) {
 	       			cv::Point2f p2(pixels2[j].x,pixels2[j].y);
 	        		contour2.push_back(p2);
 	        	}
-		}
+			}
+
+			if(tileID=="103rossing"){
+				OUT << "Sizes: " << contour1.size() << " " << contour2.size() <<"\n";
+				if(!contour1.empty()){
+					for (std::vector<cv::Point2f>::iterator i = contour1.begin(); i != contour1.end(); ++i) {
+						OUT << i->x <<" " << i->y << "\n";
+					}
+				} else {
+					continue;
+				}
+				if(!contour2.empty()){
+					for (std::vector<cv::Point2f>::iterator i = contour2.begin(); i != contour2.end(); ++i) {
+						OUT << i->x <<" " << i->y << "\n";
+					}
+				} else {
+					continue;
+				}
+			}
 	
 	        cv::Rect roi1 = cv::boundingRect(contour1);
 			cv::Mat slice1(image1,roi1);
@@ -171,10 +189,10 @@ int main(int argc, char** argv){
 			cv::Mat slice2(image2,roi2);
 			//OUT <<"Slice 2: "<<slice2.rows << " "<<slice2.cols << "\n";
 			if(slice1.rows <= _HESSIAN_THRESH || slice2.rows<=_HESSIAN_THRESH || slice1.cols <= _HESSIAN_THRESH || slice2.cols <= _HESSIAN_THRESH){
-                                ERR << "Tile: " << tileID << " is too small for a Hessian matrix.\n";
+                                //ERR << "Tile: " << tileID << " is too small for a Hessian matrix.\n";
                                 continue;
-                        }		
-			 cv::Mat contourMatrix1 = slice1.clone();
+                            }		
+			 			cv::Mat contourMatrix1 = slice1.clone();
                         //OUT << "Got to locsToBool\n";
                         cv::Mat bools1 = locsToBool(pixels1,image1);
                         //OUT << "Got passed locsToBool\n";
@@ -209,20 +227,19 @@ int main(int argc, char** argv){
 			// compare with stats
 			OUT  << "Overall (local, full image) match quality: " << compareFeaturePoints(surfMatches,goldStandard) << ".\n";
 			
-
 			// matching fewer than three points is useless.
 			if (surfMatches.leftImage.size() < 3 || surfMatches.rightImage.size() < 3) {
-				OUT << "Tile: " << tileID << " does not have any strong SURF features. Consider alternative methods.\n";
+				//OUT << "Tile: " << tileID << " does not have any strong SURF features. Consider alternative methods.\n";
 				continue;
 			}
 			Plane best = bestPossibleComputedPlane(surfMatches,goldStandard);
-			OUT <<"Best possible computed plane:";
+			//OUT <<"Best possible computed plane:";
 			for (int j=0; j< best.leftImage.size(); j++){
-				OUT  << "\t (" << best.leftImage[j].x << ", " << best.leftImage[j].y << ")->(" << best.rightImage[j].x << ", " << best.rightImage[j].y << ")";			
+				//OUT  << "\t (" << best.leftImage[j].x << ", " << best.leftImage[j].y << ")->(" << best.rightImage[j].x << ", " << best.rightImage[j].y << ")";			
 			}
-			OUT <<"\nGold standard plane:";
+			//OUT <<"\nGold standard plane:";
 			for (int j=0; j< goldStandard.leftImage.size(); j++){
-				OUT  << "\t (" << goldStandard.leftImage[j].x << ", " << goldStandard.leftImage[j].y << ")->(" << goldStandard.rightImage[j].x << ", " << goldStandard.rightImage[j].y << ")";		
+				//OUT  << "\t (" << goldStandard.leftImage[j].x << ", " << goldStandard.leftImage[j].y << ")->(" << goldStandard.rightImage[j].x << ", " << goldStandard.rightImage[j].y << ")";		
 			}
 		}
 		} catch (int e) {
