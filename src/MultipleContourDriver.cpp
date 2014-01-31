@@ -36,7 +36,7 @@
 
 Plane matchStrengths(cv::Mat mimg1, cv::Mat mimg2, cv::Mat bools1, cv::Mat bools2) {
 	bool matchGlobalOrientations = true;
-	OUT <<"Running with matchGlobalOrientations = "<<matchGlobalOrientations<<" first."<<std::endl;
+	//OUT <<"Running with matchGlobalOrientations = "<<matchGlobalOrientations<<" first."<<std::endl;
 
 	// Make images as Mats; convert to IplImage for OpenSURF library actions
 	cv::Mat mc1 = mimg1.clone();
@@ -179,18 +179,20 @@ int main(int argc, char** argv){
 				return -1;
 		}
 		//get list of tiles in image pair
-		std::vector<std::string> listOfTiles = getTileIDsForImage(imageIDL);
-		/*std::vector<std::string> listOfTilesR = getTileIDsForImage(imageIDR);
+		std::vector<std::string> listOfTiles;
+		std::vector<std::string> listOfTilesL = getTileIDsForImage(imageIDL);
+		std::vector<std::string> listOfTilesR = getTileIDsForImage(imageIDR);
 		for (int w=0; w<listOfTilesR.size();w++){
-			listOfTiles.push_back(listOfTilesR[w]);
+			if(std::find(listOfTilesL.begin(), listOfTilesL.end(), listOfTilesR[w]) != listOfTilesL.end()) {
+	    		listOfTiles.push_back(listOfTilesR[w]);
+			} else {
+			    continue;
+			}
 		}
-		// make unique list of tiles
-		std::sort(listOfTiles.begin(), listOfTiles.end());
-		listOfTiles.erase(std::unique(listOfTiles.begin(), listOfTiles.end()), listOfTiles.end());
-		*/
-		//start that iteration
+		// iterate over set of contours that appear in both images
 		for(int k = 0; k < listOfTiles.size(); k++) {
 			std::string tileID = listOfTiles[k];
+			OUT <<"\n\nTile ID: " << tileID << " which is tile number: " << k+1 << "\n";
 			std::vector<PixelLoc> pixels1 = getContour(tileID,imageIDL);
 			std::vector<PixelLoc> pixels2 = getContour(tileID,imageIDR);
 			std::vector<cv::Point2f> contour1;
@@ -207,7 +209,9 @@ int main(int argc, char** argv){
 	        cv::Rect roi1 = cv::boundingRect(contour1);
 			cv::Mat slice1(image1,roi1);
 			cv::Mat contourMatrix1 = slice1.clone();
+			//OUT << "Got to locsToBool\n";
 			cv::Mat bools1 = locsToBool(pixels1,image1);
+			//OUT << "Got passed locsToBool\n";
 			cv::Mat sliceB1(bools1,roi1);
 			cv::Mat contourBools1 = sliceB1.clone();
 			cv::Mat contourOnly1 = contourMatrix1.mul(contourBools1);
