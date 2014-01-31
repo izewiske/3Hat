@@ -33,59 +33,6 @@
  */
 #define APPROX_THRESHOLD 10
 
-/*
-Plane matchStrengths(cv::Mat mimg1, cv::Mat mimg2, cv::Mat bools1, cv::Mat bools2) {
-	bool matchGlobalOrientations = true;
-	//OUT <<"Running with matchGlobalOrientations = "<<matchGlobalOrientations<<" first."<<std::endl;
-
-	// Make images as Mats; convert to IplImage for OpenSURF library actions
-	cv::Mat mc1 = mimg1.clone();
-	cv::Mat mc2 = mimg2.clone();
-
-
-	IplImage iimg1, iimg2, bi1, bi2;
-	iimg1=mc1;
-	iimg2=mc2;
-	bi1 = bools1;
-	bi2 = bools2;
-
-	IplImage *img1, *img2, *b1, *b2;
-	img1 = &iimg1;
-	img2 = &iimg2;
-	b1 = &bi1;
-	b2 = &bi2;
-
-	IpVec ipts1, ipts2;
-	surfDetDes(img1,ipts1,false,4,4,2,0.0001f,matchGlobalOrientations,b1);
-	surfDetDes(img2,ipts2,false,4,4,2,0.0001f,matchGlobalOrientations,b2);
-
-	MatchVec matches;
-	getMatchesSymmetric(ipts1,ipts2,matches,true);
-
-	IpVec mpts1, mpts2;
-	Plane matchesVector;
-
-	for (unsigned int i = 0; i < matches.size(); ++i)	{
-		float strengthOverThreshold = 1 - matches[i].second; // /MATCH_THRESHOLD;
-		strengthOverThreshold*=255;
-		CvScalar clr = cvScalar(strengthOverThreshold,strengthOverThreshold,strengthOverThreshold);
-		clr = cvScalar(255,255,255);
-		
-		//mpts1.push_back(matches[i].first.first);
-		//mpts2.push_back(matches[i].first.second);
-	
-		//cvLine(img1,cvPoint(matches[i].first.first.x,matches[i].first.first.y),cvPoint(matches[i].first.second.x+w,matches[i].first.second.y), clr,1);
-		//cvLine(img2,cvPoint(matches[i].first.first.x-w,matches[i].first.first.y),cvPoint(matches[i].first.second.x,matches[i].first.second.y), clr,1);
-
-		matchesVector.leftImage.push_back(PixelLoc(matches[i].first.first.x,matches[i].first.first.y));
-		matchesVector.rightImage.push_back(PixelLoc(matches[i].first.second.x,matches[i].first.second.y));
-	}
-
-	OUT << "Number of OpenSURF Matches: " << matches.size() << std::endl;
-	return matchesVector;
-}
-*/
-
 // function finds the best possible plane we could have computed with a series of points 
 Plane bestPossibleComputedPlane(Plane computedPoints, Plane actualPoints){ 
 	// determines the best fitting plane computed - best possible scenario
@@ -209,6 +156,7 @@ int main(int argc, char** argv){
 
 	        cv::Rect roi1 = cv::boundingRect(contour1);
 			cv::Mat slice1(image1,roi1);
+			OUT <<"Slice 1: "<<slice1.rows << " "<<slice1.cols << "\n";
 			cv::Mat contourMatrix1 = slice1.clone();
 			//OUT << "Got to locsToBool\n";
 			cv::Mat bools1 = locsToBool(pixels1,image1);
@@ -219,6 +167,7 @@ int main(int argc, char** argv){
 
 			cv::Rect roi2 = cv::boundingRect(contour2);
 			cv::Mat slice2(image2,roi2);
+			OUT <<"Slice 2: "<<slice2.rows << " "<<slice2.cols << "\n";
 			cv::Mat contourMatrix2 = slice2.clone();
 			cv::Mat bools2 = locsToBool(pixels2,image2);
 			cv::Mat sliceB2(bools2,roi2);
