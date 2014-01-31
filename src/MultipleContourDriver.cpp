@@ -146,7 +146,7 @@ int main(int argc, char** argv){
 			if(pixels1.empty()) continue;
 			if(pixels2.empty()) continue;
 			OUT << "Image: " << imageID<< "\n";
-			OUT <<"\n\nTile ID: " << tileID << " which is tile number: " << k+1 << "\n";
+			OUT <<"Tile ID: " << tileID << " #: " << k+1 << "\n";
 
 			std::vector<cv::Point2f> contour1;
 	        for (int j = 0; j < pixels1.size(); ++j) {
