@@ -119,7 +119,7 @@ bool contourHasUniformColor(std::string tileID,std::string image){
 	Image imgPrime(image.c_str());
 	cv::Mat img(imgPrime.getHeight(),imgPrime.getWidth(),CV_8UC3,(void *) imgPrime.getData());
 	if(! img.data ) {
-				std::cerr <<	"Could not open or find the image (1)\n";
+				ERR <<	"Could not open or find the image (1)\n";
 				return -1;
 	}
 
@@ -183,7 +183,7 @@ bool contourIsDifficult(std::string tileID,std::string image){
 	Image imgPrime(image.c_str());
 	cv::Mat img(imgPrime.getHeight(),imgPrime.getWidth(),CV_8UC3,(void *) imgPrime.getData());
 	if(! img.data ) {
-				std::cerr <<	"Could not open or find the image (1)\n";
+				ERR <<	"Could not open or find the image (1)\n";
 				return -1;
 	}
 
@@ -202,10 +202,10 @@ bool contourIsDifficult(std::string tileID,std::string image){
 	cv::Mat c = contourMatrix.mul(contourBools);
 	std::vector<cv::KeyPoint> features;
 #ifdef NONFREE_ENABLED
-	std::cerr << "Nonfree is enabled, using the Sift feature detector.\n";
+	ERR << "Nonfree is enabled, using the Sift feature detector.\n";
 	cv::SiftFeatureDetector detector;
 #else 
-	std::cerr << "Nonfree is disabled, using the STAR feature detector.\n";
+	ERR << "Nonfree is disabled, using the STAR feature detector.\n";
 	cv::StarFeatureDetector detector;
 #endif 
 	detector.detect(c,features);

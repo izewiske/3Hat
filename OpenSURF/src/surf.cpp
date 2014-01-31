@@ -131,7 +131,7 @@ void Surf::getOrientation(IplImage* int_con)
           // multiply distance away in i & j by scale for calculating wavelet responses
           resX[idx] = gauss * haarXContour(r+j*s, c+i*s, 4*s, int_con);
           resY[idx] = gauss * haarYContour(r+j*s, c+i*s, 4*s, int_con);
-	  
+
 	  // angle of the gradient (up from x-axis)
 	  if (std::isfinite(resX[idx]) && std::isfinite(resY[idx]))
             Ang[idx] = getAngle(resX[idx], resY[idx]);
