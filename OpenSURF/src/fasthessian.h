@@ -14,11 +14,13 @@
 
 #include <cv.h>
 #include "ipoint.h"
+#include "responselayer.h"
 #include "ContourMat.h"
+
 
 #include <vector>
 
-class ResponseLayer;
+//class ResponseLayer;
 static const int OCTAVES = 10;
 static const int INTERVALS = 4;
 static const float THRES = 0.0004f;

@@ -46,8 +46,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build)
 
 add_subdirectory(OpenSURF/src)
 add_subdirectory(src)
-add_subdirectory(test)
+##add_subdirectory(test)
 
-enable_testing()
-add_test( OpenCV-Test RunContourMatcherTests ${ContourMatcherTests} )
-add_test( OpenCV-Test RunMatcherTests ${testdriver} )
+##enable_testing()
+##add_test( OpenCV-Test RunContourMatcherTests ${ContourMatcherTests} )
+##add_test( OpenCV-Test RunMatcherTests ${testdriver} )

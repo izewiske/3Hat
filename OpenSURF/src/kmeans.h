@@ -141,7 +141,7 @@ void Kmeans::RepositionClusters()
 
     for (unsigned int j = 0; j < ipts->size(); ++j)
     {
-      if ((unsigned int)ipts->at(j).clusterIndex == i)
+      if (ipts->at(j).clusterIndex == i)
       {
         Ipoint ip = ipts->at(j);
         x += ip.x;

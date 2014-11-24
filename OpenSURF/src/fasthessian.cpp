@@ -16,7 +16,7 @@
 //#include <vector>
 //#include "ipoint.h"
 
-#include "responselayer.h"
+//#include "responselayer.h"
 #include "fasthessian.h"
 
 using namespace std;

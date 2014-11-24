@@ -8,9 +8,8 @@
 *  MSc University of Bristol, 2008.                        *
 *                                                          *
 ************************************************************/
-#ifndef RESPONSELAYER_H
-#define RESPONSELAYER_H
-
+#ifndef __RESPONSE_LAYER__
+#define __RESPONSE_LAYER__
 #include <memory.h>
 
 //#define RL_DEBUG  // un-comment to test response layer
@@ -93,4 +92,4 @@ public:
 #endif
 };
 
-#endif
+#endif //__RESPONSE_LAYER__

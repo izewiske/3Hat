@@ -1,6 +1,6 @@
 file(GLOB_RECURSE OCV-CMSource *.cpp)
 
-add_executable(MultiContourDriver MultipleContourDriver.cpp eriolObjs.o)
+add_executable(MultiContourDriver MultipleContourDriver.cpp CoreFunctions.cpp SingleImageDriver.cpp eriolObjs.o)
 
 include_directories(../OpenSURF/src)
 target_link_libraries	(MultiContourDriver
